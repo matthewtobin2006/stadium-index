@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CBB — Stadium Index</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0f0e0c;font-family:"DM Sans",sans-serif;color:#e8e0d0}
+#home,#rankings-page,#compare-page,#visited-page{display:none}
+#sp{display:none}
+
+nav{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 2.5rem;border-bottom:1px solid rgba(232,220,180,0.1);background:#0f0e0c;position:sticky;top:0;z-index:50}
+.nav-logo{font-family:"Playfair Display",serif;font-size:1.25rem;letter-spacing:0.02em;color:#e8d080;font-style:italic}
+.nav-links{display:flex;gap:2.5rem;list-style:none}
+.nav-links a{color:rgba(232,224,208,0.4);text-decoration:none;font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;transition:color 0.2s;font-weight:500;cursor:pointer}
+.nav-links a:hover,.nav-links a.active{color:#e8d080}
+
+.hero{padding:3.5rem 2.5rem 3rem;border-bottom:1px solid rgba(232,220,180,0.08)}
+.hero-eye{font-size:0.65rem;letter-spacing:0.25em;text-transform:uppercase;color:#e8d080;margin-bottom:1rem;font-family:"DM Mono",monospace}
+.hero-title{font-family:"Playfair Display",serif;font-size:clamp(2.8rem,5vw,4.5rem);color:#f0ead8;line-height:1.05;margin-bottom:1rem;font-weight:900}
+.hero-title span{color:#e8d080;font-style:italic}
+.hero-sub{font-size:0.9rem;color:rgba(232,224,208,0.45);margin-bottom:2rem;line-height:1.7;max-width:420px}
+.search-box{max-width:380px;background:rgba(232,220,180,0.05);border:1px solid rgba(232,220,180,0.15);border-radius:2px;display:flex;align-items:center;padding:0 1rem}
+.search-box input{flex:1;background:none;border:none;outline:none;color:#e8e0d0;font-family:"DM Sans",sans-serif;font-size:0.84rem;padding:0.75rem 0.4rem}
+.search-box input::placeholder{color:rgba(232,224,208,0.22)}
+
+.content{padding:0 2.5rem 3rem}
+.div-head{display:flex;align-items:center;gap:1rem;padding:2rem 0 1rem}
+.div-head h2{font-family:"DM Mono",monospace;font-size:0.7rem;letter-spacing:0.2em;color:rgba(232,220,180,0.3);white-space:nowrap;text-transform:uppercase}
+.div-line{flex:1;height:1px;background:rgba(232,220,180,0.08)}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+
+.tcard{background:rgba(232,220,180,0.03);border-radius:3px;padding:1.1rem 0.7rem 0.9rem;display:flex;flex-direction:column;align-items:center;gap:0.4rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(232,220,180,0.07);position:relative}
+.tcard:hover{background:rgba(232,220,180,0.07);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.4)}
+.lg-badge{position:absolute;top:6px;right:7px;font-size:0.5rem;letter-spacing:0.1em;color:rgba(232,220,180,0.22);font-family:"DM Mono",monospace}
+.tcard img{width:42px;height:42px;object-fit:contain}
+.card-abbr{font-family:"Playfair Display",serif;font-size:1.05rem;font-weight:700}
+.tname{font-size:0.62rem;color:rgba(232,224,208,0.38);text-align:center;line-height:1.3}
+.tstadium{font-size:0.55rem;color:rgba(232,224,208,0.18);text-align:center;font-family:"DM Mono",monospace}
+
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:999;align-items:center;justify-content:center;padding:1rem}
+.overlay.open{display:flex}
+.modal{background:#141210;border:1px solid rgba(232,220,180,0.12);border-radius:3px;width:480px;max-width:100%;padding:2.2rem}
+.m-abbr{font-family:"Playfair Display",serif;font-size:3.2rem;line-height:1;font-weight:900;font-style:italic}
+.m-team{font-size:0.7rem;color:rgba(232,224,208,0.35);margin-bottom:1.2rem;letter-spacing:0.15em;text-transform:uppercase;font-family:"DM Mono",monospace}
+.m-sname{font-size:1.5rem;font-weight:700;color:#f0ead8;margin-bottom:0.3rem;font-family:"Playfair Display",serif}
+.m-loc{font-size:0.72rem;color:rgba(232,224,208,0.3);margin-bottom:1.4rem;font-family:"DM Mono",monospace}
+.m-facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem}
+.mf{background:rgba(232,220,180,0.04);border:1px solid rgba(232,220,180,0.08);border-radius:2px;padding:0.85rem 1rem}
+.mf-l{font-size:0.55rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(232,224,208,0.25);margin-bottom:0.3rem;font-family:"DM Mono",monospace}
+.mf-v{font-size:0.95rem;font-weight:500;color:#e8e0d0}
+.m-btns{display:flex;gap:0.6rem}
+.m-btn-exp{flex:1;background:rgba(232,220,180,0.06);border-radius:2px;font-family:"DM Sans",sans-serif;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.8rem;cursor:pointer;transition:background 0.2s;font-weight:500}
+.m-btn-exp:hover{background:rgba(232,220,180,0.12)}
+.m-btn-back{background:none;border:1px solid rgba(232,220,180,0.1);color:rgba(232,224,208,0.4);font-family:"DM Sans",sans-serif;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.8rem 1.2rem;border-radius:2px;cursor:pointer}
+
+#sp{min-height:100vh}
+.sp-nav{display:flex;align-items:center;padding:1.2rem 2.5rem;border-bottom:1px solid var(--sbr);background:var(--sbd)}
+.sp-logo{font-family:"Playfair Display",serif;font-size:1.25rem;color:var(--sa);flex:1;font-style:italic}
+.sp-back{font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--sm);cursor:pointer;font-family:"DM Mono",monospace}
+.sp-back:hover{color:var(--sa)}
+.sp-hero{padding:3rem 2.5rem 2.5rem;border-bottom:1px solid var(--sbr);background:var(--shb)}
+.sp-top{display:flex;align-items:flex-end;gap:1.6rem;margin-bottom:2rem}
+.sp-big{font-family:"Playfair Display",serif;font-size:5rem;color:var(--sa);line-height:1;font-weight:900;font-style:italic}
+.sp-tt h1{font-family:"Playfair Display",serif;font-size:2.4rem;color:var(--sh);line-height:1.05;font-weight:900}
+.sp-sname{font-size:1rem;color:var(--sa);margin-top:0.4rem;font-weight:500}
+.sp-loc{font-size:0.68rem;color:var(--sm);margin-top:0.2rem;font-family:"DM Mono",monospace}
+.sp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.sp-stat{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1rem 1.2rem}
+.sp-sl{font-size:0.55rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--sm);margin-bottom:0.35rem;font-family:"DM Mono",monospace}
+.sp-sv{font-size:1.05rem;font-weight:500;color:var(--sh)}
+.sp-sv.ac{color:var(--sa)}
+.sp-tabs{display:flex;padding:0 2.5rem;border-bottom:1px solid var(--sbr);background:var(--sbd);overflow-x:auto}
+.sp-tab{font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--sm);padding:1rem 1.1rem;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;font-family:"DM Mono",monospace;white-space:nowrap}
+.sp-tab:hover{color:var(--st)}
+.sp-tab.active{color:var(--sa);border-bottom-color:var(--sa)}
+.sp-panel{display:none;padding:2.5rem 2.5rem 3.5rem}
+.sp-panel.active{display:block}
+.sp-sec{font-family:"Playfair Display",serif;font-size:1.3rem;color:var(--sh);margin-bottom:1.4rem;margin-top:0.5rem;font-weight:700;font-style:italic}
+.sp-fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:2.5rem}
+.sp-fc{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.1rem 1.2rem}
+.sp-fl{font-size:0.55rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--sm);margin-bottom:0.4rem;font-family:"DM Mono",monospace}
+.sp-fv{font-size:0.9rem;color:var(--st);line-height:1.5}
+.dims{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:2.5rem}
+.dim{background:var(--sas);border:1px solid var(--sab);border-radius:2px;padding:1.1rem;text-align:center}
+.dn{font-family:"Playfair Display",serif;font-size:1.8rem;color:var(--sa);line-height:1;font-weight:900}
+.dl{font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--sm);margin-top:0.35rem;font-family:"DM Mono",monospace}
+.tags{display:flex;flex-wrap:wrap;gap:10px}
+.tag{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;font-size:0.75rem;color:var(--st);padding:0.5rem 0.9rem;line-height:1.5}
+.game-list{border-top:1px solid var(--sbr)}
+.gr{display:flex;align-items:center;gap:1rem;padding:1rem 0;border-bottom:1px solid var(--sbr)}
+.gd{font-size:0.65rem;color:var(--sm);width:80px;flex-shrink:0;font-family:"DM Mono",monospace}
+.gm{flex:1;font-size:0.85rem;color:var(--st)}
+.gt{font-size:0.65rem;color:var(--sm);font-family:"DM Mono",monospace}
+.gp{font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.22rem 0.55rem;border-radius:2px;flex-shrink:0;font-family:"DM Mono",monospace}
+.gph{background:var(--sas);color:var(--sa)}
+.gpa{background:var(--sc);color:var(--sm)}
+.lc{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.5rem 1.6rem;margin-bottom:12px}
+.ly{font-size:0.6rem;color:var(--sa);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.5rem;font-family:"DM Mono",monospace}
+.lt{font-size:1rem;font-weight:700;color:var(--sh);margin-bottom:0.5rem;font-family:"Playfair Display",serif}
+.ld{font-size:0.82rem;color:var(--sm);line-height:1.7}
+.fc{display:flex;gap:1.3rem;background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.4rem 1.5rem;margin-bottom:12px}
+.fi{font-size:1.8rem;flex-shrink:0;margin-top:0.1rem}
+.fn{font-size:0.95rem;font-weight:700;color:var(--sh);margin-bottom:0.4rem;font-family:"Playfair Display",serif}
+.fd{font-size:0.82rem;color:var(--sm);line-height:1.7}
+
+.rbox{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:2rem;text-align:center;margin-bottom:1.5rem}
+.rb{font-family:"Playfair Display",serif;font-size:5rem;color:var(--sa);line-height:1;font-weight:900;font-style:italic}
+.rs{font-size:0.68rem;color:var(--sm);margin-top:0.2rem;font-family:"DM Mono",monospace}
+.rbars{margin:1.5rem 0 0;text-align:left}
+.rr{display:flex;align-items:center;gap:1rem;margin-bottom:0.8rem}
+.rl{font-size:0.7rem;color:var(--sm);width:130px;flex-shrink:0}
+.rbg{flex:1;background:var(--sbr);border-radius:1px;height:4px}
+.rbf{height:4px;border-radius:1px;background:var(--sa)}
+.rv-num{font-size:0.7rem;color:var(--sa);width:30px;text-align:right;font-family:"DM Mono",monospace}
+.vote-form{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.5rem;margin-top:1.5rem}
+.score-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:0.5rem}
+.score-btn{width:36px;height:36px;border-radius:2px;border:1px solid var(--sbr);background:transparent;color:var(--st);font-family:"DM Sans",sans-serif;font-size:0.8rem;cursor:pointer;transition:all 0.15s}
+.score-btn.sel{background:var(--sa);color:var(--sbt);border-color:var(--sa)}
+.vbtn{border:none;font-family:"DM Sans",sans-serif;font-size:0.75rem;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;padding:0.85rem 2rem;border-radius:2px;cursor:pointer;margin-top:1.2rem;background:var(--sa);color:var(--sbt);transition:opacity 0.2s;display:inline-block}
+.vbtn:hover{opacity:0.85}
+.vmsg{font-size:0.75rem;color:var(--sa);margin-top:0.8rem;display:none;font-family:"DM Mono",monospace}
+
+.rv-item{padding:1.2rem 0;border-bottom:1px solid var(--sbr)}
+.rv-item:last-child{border-bottom:none}
+.rv-score{font-family:"Playfair Display",serif;font-size:1.2rem;color:var(--sa);font-weight:900;font-style:italic}
+.rv-text{font-size:0.82rem;color:var(--sm);line-height:1.65;margin-top:0.3rem}
+.rv-date{font-size:0.6rem;color:rgba(232,224,208,0.22);font-family:"DM Mono",monospace;margin-top:0.3rem}
+.rv-textarea{width:100%;background:var(--sc);border:1px solid var(--sbr);border-radius:2px;color:var(--st);font-family:"DM Sans",sans-serif;font-size:0.84rem;padding:0.85rem 1rem;resize:vertical;min-height:90px;outline:none;margin-top:0.8rem}
+
+.rank-filter{background:rgba(232,220,180,0.04);border:1px solid rgba(232,220,180,0.12);border-radius:2px;color:rgba(232,224,208,0.5);font-family:"DM Mono",monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.45rem 0.9rem;cursor:pointer;transition:all 0.2s}
+.rank-filter.active{background:rgba(232,208,128,0.12);border-color:#e8d080;color:#e8d080}
+.rank-row{display:flex;align-items:center;gap:1.2rem;padding:1rem 1.2rem;background:rgba(232,220,180,0.03);border:1px solid rgba(232,220,180,0.07);border-radius:2px;margin-bottom:8px;cursor:pointer;transition:all 0.18s}
+.rank-row:hover{background:rgba(232,220,180,0.07);transform:translateX(4px)}
+.rank-num{font-family:"Playfair Display",serif;font-size:1.4rem;color:rgba(232,220,180,0.2);width:36px;flex-shrink:0;font-weight:900;font-style:italic}
+.rank-logo{width:36px;height:36px;object-fit:contain;flex-shrink:0}
+.rank-name{font-size:0.88rem;font-weight:500;color:#f0ead8;margin-bottom:0.18rem}
+.rank-stadium{font-size:0.68rem;color:rgba(232,224,208,0.35);font-family:"DM Mono",monospace}
+.rank-val{font-family:"Playfair Display",serif;font-size:1.5rem;font-weight:900;font-style:italic}
+.rank-sub{font-size:0.6rem;color:rgba(232,224,208,0.3);font-family:"DM Mono",monospace;text-align:right;margin-top:0.1rem}
+
+.cmp-row{display:grid;grid-template-columns:1fr 1fr}
+.cmp-cell{padding:0.9rem 1.2rem;border-bottom:1px solid rgba(232,220,180,0.06)}
+.cmp-lbl{font-size:0.55rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(232,224,208,0.28);margin-bottom:0.3rem;font-family:"DM Mono",monospace}
+.cmp-val{font-size:0.9rem;color:#e8e0d0;font-weight:500}
+.cmp-win{color:#e8d080}
+
+.vis-card{background:rgba(232,220,180,0.03);border:1px solid rgba(232,220,180,0.07);border-radius:3px;padding:1rem 0.7rem;display:flex;flex-direction:column;align-items:center;gap:0.4rem;cursor:pointer;transition:all 0.2s;position:relative}
+.vis-card.been{border-color:rgba(232,208,128,0.4);background:rgba(232,208,128,0.07)}
+.vis-card:hover{transform:translateY(-2px)}
+.vis-check{position:absolute;top:6px;left:7px;font-size:0.7rem;color:#e8d080;opacity:0}
+.vis-card.been .vis-check{opacity:1}
+
+.page-head{margin-bottom:2rem}
+.page-eye{font-family:"DM Mono",monospace;font-size:0.65rem;letter-spacing:0.25em;text-transform:uppercase;color:#e8d080;margin-bottom:0.6rem}
+.page-title{font-family:"Playfair Display",serif;font-size:2.8rem;color:#f5efe0;font-weight:900;margin-bottom:0.5rem}
+.page-sub{font-size:0.85rem;color:rgba(232,224,208,0.4);line-height:1.6}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Stadium <span style="color:#e8d080">Index</span> &#8212; NFL</div>
+  <ul class="nav-links">
+    <li><a onclick="showPage('home')" id="nav-home" class="active">Stadiums</a></li>
+    <li><a onclick="showPage('rankings')" id="nav-rankings">Rankings</a></li>
+    <li><a onclick="showPage('compare')" id="nav-compare">Compare</a></li>
+    <li><a onclick="showPage('visited')" id="nav-visited">My Parks</a></li>
+  </ul>
+</nav>
+
+<div id="home">
+  <div class="hero">
+    <div class="hero-eye">All D1 CBB Arenas</div>
+    <h1 class="hero-title">Every Arena.<br><span>Every Story.</span></h1>
+    <p class="hero-sub">Explore every major college basketball arena across all D1 conferences.</p>
+    <div class="search-box"><input id="srch" type="text" placeholder="Search a team or stadium..."></div>
+  </div>
+  <div class="content" id="divs"></div>
+</div>
+
+<div id="rankings-page" style="padding:2.5rem;min-height:100vh">
+  <div style="max-width:900px;margin:0 auto">
+    <div class="page-head">
+      <div class="page-eye">Ballpark Index</div>
+      <div class="page-title">Stadium Rankings</div>
+      <div class="page-sub">Sort and filter all 30 MLB ballparks.</div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:2rem">
+      <button class="rank-filter active" onclick="setRankSort('rating',this)">Fan Rating</button>
+      <button class="rank-filter" onclick="setRankSort('cap',this)">Capacity</button>
+      <button class="rank-filter" onclick="setRankSort('oldest',this)">Oldest First</button>
+      <button class="rank-filter" onclick="setRankSort('newest',this)">Newest First</button>
+      <button class="rank-filter" onclick="setRankSort('name',this)">A&#8211;Z</button>
+      <button class="rank-filter" onclick="setRankSort('div',this)">By Division</button>
+    </div>
+    <div id="rank-list"></div>
+  </div>
+</div>
+
+<div id="compare-page" style="padding:2.5rem;min-height:100vh">
+  <div style="max-width:900px;margin:0 auto">
+    <div class="page-head">
+      <div class="page-eye">Ballpark Index</div>
+      <div class="page-title">Compare Stadiums</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem">
+      <div>
+        <div style="font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(232,224,208,0.35);margin-bottom:0.5rem;font-family:DM Mono,monospace">Stadium One</div>
+        <select id="cmp-a" onchange="renderCompare()" style="width:100%;background:#141210;border:1px solid rgba(232,220,180,0.15);border-radius:2px;color:#e8e0d0;font-family:DM Sans,sans-serif;font-size:0.85rem;padding:0.75rem 1rem;outline:none;cursor:pointer"></select>
+      </div>
+      <div>
+        <div style="font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(232,224,208,0.35);margin-bottom:0.5rem;font-family:DM Mono,monospace">Stadium Two</div>
+        <select id="cmp-b" onchange="renderCompare()" style="width:100%;background:#141210;border:1px solid rgba(232,220,180,0.15);border-radius:2px;color:#e8e0d0;font-family:DM Sans,sans-serif;font-size:0.85rem;padding:0.75rem 1rem;outline:none;cursor:pointer"></select>
+      </div>
+    </div>
+    <div id="cmp-result"></div>
+  </div>
+</div>
+
+<div id="visited-page" style="padding:2.5rem;min-height:100vh">
+  <div style="max-width:900px;margin:0 auto">
+    <div class="page-head">
+      <div class="page-eye">Ballpark Index</div>
+      <div class="page-title">My Parks</div>
+      <div class="page-sub" id="vis-sub">Track every ballpark you have visited.</div>
+    </div>
+    <div id="vis-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px"></div>
+  </div>
+</div>
+
+<div class="overlay" id="ov">
+  <div class="modal">
+    <div class="m-abbr" id="ma"></div>
+    <div class="m-team" id="mt"></div>
+    <div class="m-sname" id="ms"></div>
+    <div class="m-loc" id="ml"></div>
+    <div class="m-facts" id="mf"></div>
+    <div class="m-btns">
+      <button class="m-btn-exp" id="meb">EXPLORE THIS BALLPARK &#8594;</button>
+      <button class="m-btn-back" onclick="closeModal()">BACK</button>
+    </div>
+  </div>
+</div>
+
+<div id="sp">
+  <div class="sp-nav"><div class="sp-logo">Stadium Index &#8212; CBB</div><div class="sp-back" onclick="showPage('home')">&#8592; All Stadiums</div></div>
+  <div class="sp-hero">
+    <div class="sp-top">
+      <div class="sp-big" id="spa"></div>
+      <div class="sp-tt"><h1 id="spn"></h1><div class="sp-sname" id="sps"></div><div class="sp-loc" id="spl"></div></div>
+    </div>
+    <div class="sp-stats">
+      <div class="sp-stat"><div class="sp-sl">Opened</div><div class="sp-sv" id="spo"></div></div>
+      <div class="sp-stat"><div class="sp-sl">Capacity</div><div class="sp-sv" id="spc"></div></div>
+      <div class="sp-stat"><div class="sp-sl">Surface</div><div class="sp-sv" id="spsu"></div></div>
+      <div class="sp-stat"><div class="sp-sl">Fan Rating</div><div class="sp-sv ac" id="spr"></div></div>
+    </div>
+  </div>
+  <div class="sp-tabs" id="sp-tabs-row">
+    <div class="sp-tab active" onclick="sTab('t-ov',this)">Overview</div>
+    <div class="sp-tab" onclick="sTab('t-gm',this)">Games</div>
+    <div class="sp-tab" onclick="sTab('t-lg',this)">Legends</div>
+    <div class="sp-tab" onclick="sTab('t-fd',this)">Food Guide</div>
+    <div class="sp-tab" onclick="sTab('t-rt',this)">Fan Ratings</div>
+    <div class="sp-tab" onclick="sTab('t-rv',this)">Reviews</div>
+  </div>
+  <div id="t-ov" class="sp-panel active">
+    <div class="sp-sec">Stadium Facts</div><div class="sp-fg" id="sp-facts"></div>
+    <div class="sp-sec">Field Dimensions</div><div class="dims" id="sp-dims"></div>
+    <div class="sp-sec">What Makes It Unique</div><div class="tags" id="sp-tags"></div>
+  </div>
+  <div id="t-gm" class="sp-panel">
+    <div class="sp-sec">Upcoming Games</div>
+    <div class="game-list" id="sp-games"><div style="font-size:.82rem;padding:.8rem 0;color:var(--sm)">Loading...</div></div>
+  </div>
+  <div id="t-lg" class="sp-panel"><div class="sp-sec">Legendary Moments</div><div id="sp-legs"></div></div>
+  <div id="t-fd" class="sp-panel"><div class="sp-sec">Food Guide</div><div id="sp-food"></div></div>
+  <div id="t-rt" class="sp-panel">
+    <div class="sp-sec">Fan Ratings</div>
+    <div class="rbox">
+      <div class="rb" id="rt-score"></div>
+      <div class="rs" id="rt-count"></div>
+      <div class="rbars" id="rt-bars"></div>
+    </div>
+    <div id="rt-vote-area"></div>
+  </div>
+  <div id="t-rv" class="sp-panel">
+    <div class="sp-sec">Reviews</div>
+    <div style="background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.5rem;margin-bottom:1.5rem" id="rv-list"></div>
+    <div id="rv-form-area"></div>
+  </div>
+</div>
+
+<script>
+const TEAMS=[
+{id:61,abbr:"KU",espn:"kansas",name:"Kansas Jayhawks",arena:"Allen Fieldhouse",city:"Lawrence, KS",div:"Big 12",lg:"Big 12",opened:1955,cap:16300,surf:"Hardwood",rating:null,rc:"0",p:"#0051A5",s:"#E8000D",facts:[["Opened","1955"],["Capacity","16,300"],["Conference","Big 12"],["Location","Lawrence, KS"]],dims:[["16,300","Capacity"],["1955","Opened"],["Big 12","Conference"]],unique:["The most celebrated college basketball arena in America","Phog Allen designed the original fast-break system","Blue Hell — one of the most intimidating home courts in college basketball","James Naismith, the inventor of basketball, coached at Kansas"],legs:[{y:"2022",t:"National Champions — The Comeback",d:"Down 15 at halftime to North Carolina, Kansas rallied to win the national championship — the greatest comeback in title game history."},{y:"2008",t:"Mario Chalmers' Shot",d:"Chalmers's three-pointer with 2.1 seconds left forced overtime — Kansas won their most celebrated championship."},{y:"1952",t:"Phog Allen's Final Championship",d:"Allen won his second and final national title — the pioneer of the fast break."}],food:[{i:"🌮",n:"Kansas Tailgate Brisket",d:"Slow-smoked Kansas-style brisket — a Lawrence game day tradition."},{i:"🍺",n:"Free State Brewing",d:"Lawrence's beloved craft brewery — a Kansas institution."},{i:"🌽",n:"Kansas Wheat Bread",d:"Fresh-baked bread from local Kansas wheat farms."}]},
+{id:62,abbr:"UK",espn:"kentucky",name:"Kentucky Wildcats",arena:"Rupp Arena",city:"Lexington, KY",div:"SEC",lg:"SEC",opened:1976,cap:20545,surf:"Hardwood",rating:null,rc:"0",p:"#0033A0",s:"#FFFFFF",facts:[["Opened","1976"],["Capacity","20,545"],["Conference","SEC"],["Largest","College Basketball Arena in US"]],dims:[["20,545","Capacity"],["1976","Opened"],["SEC","Conference"]],unique:["Largest college basketball arena in the United States at 20,545","The most college basketball championships in history — 8","The Big Blue Nation is the most devoted fan base in college sports","Every NBA draft has multiple Kentucky players"],legs:[{y:"2012",t:"The One-and-Done Champions",d:"Anthony Davis led Kentucky to the national title — the most talent-rich roster in college basketball history."},{y:"1996",t:"The Unforgettables and the Title",d:"Kentucky won the national championship — the return to glory under Rick Pitino."},{y:"1978",t:"The Rupp Era Championship",d:"Kentucky won their 5th national title in the final year of the Rupp era."}],food:[{i:"🐴",n:"Kentucky Hot Brown",d:"Open-faced turkey sandwich with Mornay sauce and bacon — Kentucky's most celebrated dish."},{i:"🍺",n:"West Sixth Brewing",d:"Lexington's beloved craft brewery pours throughout Rupp Arena."},{i:"🥧",n:"Derby Pie",d:"A chocolate walnut tart — Kentucky's most famous dessert."}]},
+{id:63,abbr:"UNC",espn:"north-carolina",name:"North Carolina Tar Heels",arena:"Dean E. Smith Center",city:"Chapel Hill, NC",div:"ACC",lg:"ACC",opened:1986,cap:21750,surf:"Hardwood",rating:null,rc:"0",p:"#7BAFD4",s:"#FFFFFF",facts:[["Opened","1986"],["Capacity","21,750"],["Conference","ACC"],["Nickname","The Dean Dome"]],dims:[["21,750","Capacity"],["1986","Opened"],["ACC","Conference"]],unique:["Named for the legendary Dean Smith — the most influential coach in college basketball history","Six national championships","Carolina Blue is one of the most iconic colors in all of sports","Michael Jordan, James Worthy, and Vince Carter all played here"],legs:[{y:"2022",t:"The Final Four Miracle Run",d:"UNC beat Duke in Coach K's final Final Four — one of the greatest moments in college basketball history."},{y:"2017",t:"National Champions — The Redemption",d:"After losing on a buzzer beater in 2016, Carolina won the title the following year."},{y:"1982",t:"Michael Jordan's Shot",d:"Jordan's jumper won the national championship — the most famous shot in college basketball history."}],food:[{i:"🍗",n:"Carolina BBQ",d:"Vinegar-based pulled pork — North Carolina's iconic BBQ style."},{i:"🍺",n:"Carolina Brewing",d:"Chapel Hill's local craft brewery — a Tar Heel institution."},{i:"🥪",n:"Carolina Club Sandwich",d:"A classic club with local deli meats — the Dean Dome concession staple."}]},
+{id:64,abbr:"DUKE",espn:"duke",name:"Duke Blue Devils",arena:"Cameron Indoor Stadium",city:"Durham, NC",div:"ACC",lg:"ACC",opened:1940,cap:9314,surf:"Hardwood",rating:null,rc:"0",p:"#003087",s:"#FFFFFF",facts:[["Opened","1940"],["Capacity","9,314"],["Conference","ACC"],["Atmosphere","Best in College Basketball"]],dims:[["9,314","Capacity"],["1940","Opened"],["ACC","Conference"]],unique:["Cameron Indoor is universally regarded as the greatest college basketball atmosphere in America","The Cameron Crazies are the most famous student section in sports","Five national championships","Coach K is the winningest coach in college basketball history"],legs:[{y:"1992",t:"The Shot — Christian Laettner",d:"Laettner's full-court catch and turnaround jumper at the buzzer is the greatest play in college basketball history."},{y:"2010",t:"Gordon Hayward's Buzzer Beater — Almost",d:"Butler's Gordon Hayward's half-court shot at the buzzer rimmed out — Duke won the title."},{y:"2022",t:"Coach K's Final Four — The Last Dance",d:"Krzyzewski's final game was in the Final Four against rival UNC — one of sport's most emotional moments."}],food:[{i:"🍕",n:"Ninth Street Pizza",d:"Durham's beloved local pizza from the campus area."},{i:"🍺",n:"Fullsteam Brewery",d:"Durham's iconic Southern-inspired craft brewery."},{i:"🌮",n:"Scratch Food Truck",d:"Durham's thriving food truck scene near Cameron Indoor."}]},
+{id:65,abbr:"UL",espn:"louisville",name:"Louisville Cardinals",arena:"KFC Yum! Center",city:"Louisville, KY",div:"ACC",lg:"ACC",opened:2010,cap:22090,surf:"Hardwood",rating:null,rc:"0",p:"#AD0000",s:"#000000",facts:[["Opened","2010"],["Capacity","22,090"],["Conference","ACC"],["Largest","CBB Arena"]],dims:[["22,090","Capacity"],["2010","Opened"],["ACC","Conference"]],unique:["The largest college basketball arena in the country at 22,090","One national championship (2013) — subsequently vacated","Rick Pitino built one of college basketball's most storied programs","The Cards fans fill KFC Yum! Center — one of the loudest in college basketball"],legs:[{y:"2013",t:"National Champions — Kevin Ware's Comeback",d:"Kevin Ware's horrific injury and subsequent recovery became the emotional heart of the championship run."},{y:"1986",t:"Denny Crum's Second Title",d:"Crum won his second national championship — cementing Louisville as a basketball powerhouse."},{y:"2023",t:"Kenny Payne Era Begins",d:"Louisville began a new chapter with the highly anticipated Kenny Payne hire."}],food:[{i:"🥃",n:"Kentucky Bourbon",d:"Louisville is the Bourbon Capital of the World — whiskey cocktails are a game day staple."},{i:"🐴",n:"Kentucky Hot Brown",d:"Open-faced turkey sandwich with Mornay sauce — Louisville's most famous dish."},{i:"🍺",n:"Against the Grain Brewing",d:"Louisville's beloved local craft brewery pours throughout KFC Yum! Center."}]},
+{id:66,abbr:"SYR",espn:"syracuse",name:"Syracuse Orange",arena:"JMA Wireless Dome",city:"Syracuse, NY",div:"ACC",lg:"ACC",opened:1980,cap:35446,surf:"Hardwood",rating:null,rc:"0",p:"#D44500",s:"#FFFFFF",facts:[["Opened","1980"],["Capacity","35,446"],["Conference","ACC"],["Largest","Dome in CBB"]],dims:[["35,446","Capacity"],["1980","Opened"],["ACC","Conference"]],unique:["The largest on-campus domed stadium in college sports","One national championship (2003)","The 2-3 zone defense is inseparable from Syracuse basketball","Jim Boeheim coached for 47 years — one of the longest tenures in college sports"],legs:[{y:"2003",t:"Carmelo Anthony's Championship",d:"Anthony led Syracuse to the national title as a freshman — one of the greatest individual championship performances."},{y:"1996",t:"The Comeback Against Kentucky",d:"Syracuse overcame a huge deficit to force overtime against Kentucky in the Final Four."},{y:"2016",t:"The Miracle Run to the Final Four",d:"As a 10-seed, Syracuse reached the Final Four — one of the great Cinderella runs in tournament history."}],food:[{i:"🌭",n:"New York Style Hot Dog",d:"Classic NYC-style dog with mustard and kraut."},{i:"🍕",n:"NY-Style Pizza",d:"Giant New York slices throughout the dome."},{i:"🍺",n:"Middle Ages Brewing",d:"Syracuse's beloved local craft brewery."}]},
+{id:67,abbr:"VIL",espn:"villanova",name:"Villanova Wildcats",arena:"Finneran Pavilion",city:"Villanova, PA",div:"Big East",lg:"Big East",opened:1986,cap:6500,surf:"Hardwood",rating:null,rc:"0",p:"#00205B",s:"#13B5EA",facts:[["Opened","1986"],["Capacity","6,500"],["Conference","Big East"],["Championships","3"]],dims:[["6,500","Capacity"],["1986","Opened"],["Big East","Conference"]],unique:["Three national championships (1985, 2016, 2018)","The 2016 Kris Jenkins shot is the most celebrated buzzer beater in tournament history","Jay Wright is one of the greatest coaches of his era","Small arena creates an electric atmosphere that rivals any in college basketball"],legs:[{y:"2016",t:"Kris Jenkins' National Title Shot",d:"Jenkins' three-pointer at the buzzer won the national championship — the most famous shot in recent tournament history."},{y:"2018",t:"Back-to-Back Champions",d:"Villanova repeated as champions — confirming them as the dominant program of the era."},{y:"1985",t:"The Upset of Georgetown",d:"Villanova shot 79% from the field to upset Patrick Ewing's Georgetown — the greatest performance in championship game history."}],food:[{i:"🥩",n:"Philly Cheesesteak",d:"Shaved ribeye with Cheez Whiz — Philadelphia's most iconic food."},{i:"🥨",n:"Philly Soft Pretzel",d:"Giant doughy pretzels with yellow mustard."},{i:"🍺",n:"Yards Brewing",d:"Philadelphia's own Yards pours at Villanova events."}]},
+{id:68,abbr:"CONN",espn:"uconn",name:"UConn Huskies",arena:"Harry A. Gampel Pavilion",city:"Storrs, CT",div:"Big East",lg:"Big East",opened:1990,cap:10167,surf:"Hardwood",rating:null,rc:"0",p:"#000E2F",s:"#E4002B",facts:[["Opened","1990"],["Capacity","10,167"],["Conference","Big East"],["Dynasty","6 National Titles (Men+Women)"]],dims:[["10,167","Capacity"],["1990","Opened"],["Big East","Conference"]],unique:["The most dominant basketball program of the 21st century — men and women combined","Back-to-back national champions in 2023 and 2024 — the new dynasty","Geno Auriemma's women's dynasty is the most successful in college sports history","UConn has produced more NBA lottery picks per capita than any other program"],legs:[{y:"2024",t:"Back-to-Back National Champions",d:"Dan Hurley's Huskies repeated as national champions — the first back-to-back since Florida in 2007."},{y:"2023",t:"The Dominant Championship Run",d:"UConn won the national title without being challenged — the most dominant tournament run in recent memory."},{y:"2004",t:"Emeka Okafor's Championship",d:"Okafor led UConn to the title — one of the most dominant big man performances in tournament history."}],food:[{i:"🦞",n:"New England Lobster Roll",d:"Connecticut-style lobster roll — fresh Maine lobster, light mayo."},{i:"🍕",n:"New Haven Pizza",d:"Frank Pepe's-style coal-fired pizza — New Haven is home to America's best pizza."},{i:"🍺",n:"Two Roads Brewing",d:"Connecticut's beloved craft brewery."}]},
+{id:69,abbr:"GONZ",espn:"gonzaga",name:"Gonzaga Bulldogs",arena:"McCarthey Athletic Center",city:"Spokane, WA",div:"WCC",lg:"WCC",opened:2004,cap:6000,surf:"Hardwood",rating:null,rc:"0",p:"#002F6C",s:"#CF0A2C",facts:[["Opened","2004"],["Capacity","6,000"],["Conference","WCC"],["Runs","25+ Straight NCAA Tournaments"]],dims:[["6,000","Capacity"],["2004","Opened"],["WCC","Conference"]],unique:["The most consistent program in college basketball — 25+ consecutive NCAA tournament appearances","Two national championship game appearances (2017, 2021)","Mark Few is one of the greatest coaches in college basketball history","Gonzaga turned a small Jesuit school into a national basketball powerhouse"],legs:[{y:"2021",t:"The Undefeated Season — Finals Loss",d:"Gonzaga went 26-0 before losing to Baylor in the national title game — the best team not to win the championship."},{y:"2017",t:"The First Finals Appearance",d:"Gonzaga reached the national championship game — validating decades of tournament success."},{y:"2017",t:"Nigel Williams-Goss Era",d:"The best team in program history fell one game short of the ultimate prize."}],food:[{i:"🥩",n:"Pacific Northwest Beef",d:"Local Washington State beef — Spokane's ranch country heritage."},{i:"🍎",n:"Washington Apples",d:"Washington State is apple country — fresh local apples at every game."},{i:"🍺",n:"No-Li Brewhouse",d:"Spokane's celebrated craft brewery."}]},
+{id:70,abbr:"MSST",espn:"mississippi-state",name:"Michigan State Spartans",arena:"Breslin Student Events Center",city:"East Lansing, MI",div:"Big Ten",lg:"Big Ten",opened:1989,cap:14797,surf:"Hardwood",rating:null,rc:"0",p:"#18453B",s:"#FFFFFF",facts:[["Opened","1989"],["Capacity","14,797"],["Conference","Big Ten"],["Championships","2"]],dims:[["14,797","Capacity"],["1989","Opened"],["Big Ten","Conference"]],unique:["Two national championships (1979, 2000)","Magic Johnson is the greatest player in Spartans basketball history","Tom Izzo has coached Michigan State for three decades — one of college basketball's greatest tenures","The Breslin Center is one of the Big Ten's most intimidating arenas"],legs:[{y:"2000",t:"Mateen Cleaves and the Championship",d:"Cleaves led Michigan State to the national title — Izzo's first championship."},{y:"1979",t:"Magic Johnson's Title",d:"Johnson led Michigan State over Larry Bird's Indiana State — the most watched college basketball game in history."},{y:"2019",t:"The Izzo Legacy",d:"Michigan State reached the Final Four for the third time in four years — Izzo's greatest coaching stretch."}],food:[{i:"🍕",n:"Michigan Deep Dish",d:"East Lansing's local pizza joints deliver throughout the arena."},{i:"🍺",n:"Bell's Brewery",d:"Michigan's most celebrated craft brewery — Two Hearted Ale is the signature pour."},{i:"🌮",n:"Michigan Street Tacos",d:"East Lansing's growing taco truck scene near campus."}]},
+{id:71,abbr:"UCLA",espn:"ucla",name:"UCLA Bruins",arena:"Pauley Pavilion",city:"Los Angeles, CA",div:"Big Ten",lg:"Big Ten",opened:1965,cap:13800,surf:"Hardwood",rating:null,rc:"0",p:"#2D68C4",s:"#F2A900",facts:[["Opened","1965"],["Capacity","13,800"],["Conference","Big Ten"],["Championships","11 — Most in NCAA History"]],dims:[["13,800","Capacity"],["1965","Opened"],["Big Ten","Conference"]],unique:["11 national championships — the most in NCAA history","John Wooden's 10-title dynasty is the most dominant in sports history","Bill Walton, Kareem Abdul-Jabbar, and Reggie Miller all played here","Pauley Pavilion recently underwent a major renovation"],legs:[{y:"1973",t:"88 Consecutive Wins — Wooden's Peak",d:"UCLA's 88-game winning streak under John Wooden is the greatest sustained run in college basketball."},{y:"1968",t:"Lew Alcindor's Three Titles",d:"Before he was Kareem, Lew Alcindor dominated college basketball with three consecutive national titles."},{y:"1995",t:"Ed O'Bannon's Championship",d:"O'Bannon led UCLA to their 11th and most recent national title."}],food:[{i:"🌮",n:"SoCal Street Tacos",d:"Authentic Southern California Mexican street tacos near Pauley Pavilion."},{i:"🥑",n:"California Health Bowls",d:"Farm-fresh California cuisine — reflecting LA's food culture."},{i:"🍺",n:"Golden Road Brewing",d:"LA's own craft brewery near the UCLA campus."}]},
+{id:72,abbr:"IU",espn:"indiana",name:"Indiana Hoosiers",arena:"Simon Skjodt Assembly Hall",city:"Bloomington, IN",div:"Big Ten",lg:"Big Ten",opened:1971,cap:17222,surf:"Hardwood",rating:null,rc:"0",p:"#990000",s:"#FFFFFF",facts:[["Opened","1971"],["Capacity","17,222"],["Conference","Big Ten"],["Championships","5"]],dims:[["17,222","Capacity"],["1971","Opened"],["Big Ten","Conference"]],unique:["Five national championships — the most of any Big Ten school","The last undefeated season in college basketball history — 1976 Indiana Hoosiers","Bob Knight was the most controversial and successful coach in Big Ten history","Assembly Hall is one of college basketball's loudest and most intimidating arenas"],legs:[{y:"1976",t:"The Perfect Season — 32-0",d:"Indiana went 32-0 — the last undefeated season in college basketball history. The greatest team Indiana ever fielded."},{y:"1987",t:"Keith Smart's Shot",d:"Smart's baseline jumper won Indiana's fifth and most recent national championship."},{y:"2023",t:"Mike Woodson's Rebuild",d:"Woodson returned Indiana to the Sweet Sixteen for the first time in years."}],food:[{i:"🌭",n:"Indiana Pork Tenderloin",d:"Breaded and fried pork tenderloin — the state sandwich of Indiana."},{i:"🍦",n:"Jeni's Ice Cream",d:"Columbus-based Jeni's Splendid Ice Creams — beloved throughout the Midwest."},{i:"🍺",n:"Upland Brewing",d:"Bloomington's beloved local craft brewery."}]},
+{id:73,abbr:"OSU",espn:"ohio-state",name:"Ohio State Buckeyes",arena:"Value City Arena",city:"Columbus, OH",div:"Big Ten",lg:"Big Ten",opened:1998,cap:19500,surf:"Hardwood",rating:null,rc:"0",p:"#BB0000",s:"#666666",facts:[["Opened","1998"],["Capacity","19,500"],["Conference","Big Ten"],["Location","Columbus, OH"]],dims:[["19,500","Capacity"],["1998","Opened"],["Big Ten","Conference"]],unique:["One of the largest college basketball arenas in the country","One national championship (1960)","Jerry Lucas and John Havlicek played here","Recently renovated with premium facilities"],legs:[{y:"1960",t:"The Only Championship",d:"Jerry Lucas and John Havlicek led Ohio State to the national title."},{y:"2012",t:"Jared Sullinger Era",d:"Sullinger led Ohio State to the Elite Eight — the best Buckeye basketball in decades."},{y:"2023",t:"Chris Holtmann's Run",d:"Ohio State reached the NCAA Tournament again before a coaching change."}],food:[{i:"🌭",n:"Ohio Stadium Mustard Dog",d:"A classic Cleveland-style dog with Stadium Mustard."},{i:"🍕",n:"Donato's Pizza",d:"Columbus's beloved local pizza chain."},{i:"🍺",n:"Land-Grant Brewing",d:"Columbus's celebrated craft brewery."}]},
+{id:74,abbr:"KSU",espn:"kansas-state",name:"Kansas State Wildcats",arena:"Bramlage Coliseum",city:"Manhattan, KS",div:"Big 12",lg:"Big 12",opened:1988,cap:12528,surf:"Hardwood",rating:null,rc:"0",p:"#512888",s:"#D1D1D1",facts:[["Opened","1988"],["Capacity","12,528"],["Conference","Big 12"],["Location","Manhattan, KS"]],dims:[["12,528","Capacity"],["1988","Opened"],["Big 12","Conference"]],unique:["Bramlage Coliseum is one of college basketball's most underrated arenas","K-State fans are among the most passionate in the Big 12","Jerome Tang's hire has brought renewed excitement to Manhattan","The Little Apple — Manhattan, Kansas basketball culture"],legs:[{y:"2023",t:"Elite Eight Under Jerome Tang",d:"Tang led Kansas State to the Elite Eight in his first season — one of the great coaching debuts in recent memory."},{y:"2010",t:"Jacob Pullen Era",d:"Pullen led K-State to back-to-back Sweet Sixteens — the best stretch of basketball in recent program history."},{y:"1958",t:"Bob Boozer's Era",d:"K-State reached the Final Four — the high point of the program's early history."}],food:[{i:"🌮",n:"Kansas Tailgate Brisket",d:"Slow-smoked Kansas-style brisket — a Manhattan game day tradition."},{i:"🍺",n:"Tallgrass Brewing",d:"Kansas's celebrated craft brewery from Manhattan."},{i:"🌽",n:"Kansas Wheat Bread",d:"Fresh-baked bread from local Kansas wheat farms."}]},
+{id:75,abbr:"UT",espn:"texas",name:"Texas Longhorns",arena:"Moody Center",city:"Austin, TX",div:"SEC",lg:"SEC",opened:2022,cap:15000,surf:"Hardwood",rating:null,rc:"0",p:"#BF5700",s:"#FFFFFF",facts:[["Opened","2022"],["Capacity","15,000"],["Conference","SEC"],["New","Opened in 2022"]],dims:[["15,000","Capacity"],["2022","Opened"],["SEC","Conference"]],unique:["Moody Center is one of the newest college basketball arenas in the country","One national championship (2003)","T.J. Ford and Kevin Durant both played here","Austin's growth has made Texas basketball an exciting proposition"],legs:[{y:"2003",t:"The Only Championship — T.J. Ford",d:"Ford led Texas to their only national title — the best team in program history."},{y:"2007",t:"Kevin Durant's One Season",d:"Durant averaged 25 points per game — the most dominant freshman season in college basketball history."},{y:"2023",t:"Rodney Terry's Run",d:"Terry led Texas to the Elite Eight on an emotional journey after Chris Beard's dismissal."}],food:[{i:"🥩",n:"Texas Brisket",d:"Slow-smoked Texas BBQ brisket — the definitive Austin food."},{i:"🌮",n:"Tex-Mex Nachos",d:"Loaded nachos with queso and jalapeños — proper Austin Tex-Mex."},{i:"🍺",n:"Austin Beerworks",d:"Austin's beloved local craft brewery near the Moody Center."}]},
+{id:76,abbr:"ARK",espn:"arkansas",name:"Arkansas Razorbacks",arena:"Bud Walton Arena",city:"Fayetteville, AR",div:"SEC",lg:"SEC",opened:1993,cap:19200,surf:"Hardwood",rating:null,rc:"0",p:"#9D2235",s:"#000000",facts:[["Opened","1993"],["Capacity","19,200"],["Conference","SEC"],["Location","Fayetteville, AR"]],dims:[["19,200","Capacity"],["1993","Opened"],["SEC","Conference"]],unique:["One national championship (1994)","Bud Walton Arena is one of the loudest and most intimidating arenas in the SEC","Calling the Hogs resonates just as loudly in basketball as football","Nolan Richardson's 40 Minutes of Hell style changed college basketball"],legs:[{y:"1994",t:"40 Minutes of Hell — National Champions",d:"Corliss Williamson and the Razorbacks won the national title with Nolan Richardson's relentless press."},{y:"1995",t:"Back to the Finals",d:"Arkansas reached the national championship game again — confirming the dynasty."},{y:"2022",t:"Eric Musselman's Final Four Run",d:"Musselman led Arkansas to the Elite Eight — the best Razorbacks basketball in decades."}],food:[{i:"🍗",n:"Calling the Hogs BBQ",d:"Pulled pork with WOO PIG SOOIE spirit — Arkansas tailgate tradition."},{i:"🍺",n:"Core Brewing",d:"Arkansas's celebrated craft brewery from Springdale."},{i:"🌽",n:"Ozark Mountain Corn",d:"Fresh local corn from the Ozark Mountains."}]},
+{id:77,abbr:"BAYLOR",espn:"baylor",name:"Baylor Bears",arena:"Foster Pavilion",city:"Waco, TX",div:"Big 12",lg:"Big 12",opened:2024,cap:10284,surf:"Hardwood",rating:null,rc:"0",p:"#003015",s:"#FFB81C",facts:[["Opened","2024"],["Capacity","10,284"],["Conference","Big 12"],["New","Opened in 2024"]],dims:[["10,284","Capacity"],["2024","Opened"],["Big 12","Conference"]],unique:["Foster Pavilion is one of the newest arenas in college basketball","One national championship (2021)","Scott Drew turned Baylor from a scandal-ridden program into a champion","Jared Butler's shooting is one of the most celebrated individual title game performances"],legs:[{y:"2021",t:"National Champions — The Perfect Game",d:"Baylor dismantled Gonzaga's undefeated team — one of the most dominant championship game performances in history."},{y:"2022",t:"Elite Eight Defense of Title",d:"Baylor reached the Elite Eight — confirming their status as a perennial contender."},{y:"2012",t:"Brittney Griner's Era",d:"Griner led Baylor's women's team to a national championship — the most dominant player in women's basketball history."}],food:[{i:"🌮",n:"Waco Tex-Mex",d:"Central Texas-style Tex-Mex — authentic Waco flavors."},{i:"🍺",n:"Waco Ale Company",d:"Waco's local craft brewery near the Foster Pavilion."},{i:"🥩",n:"Texas Brisket",d:"Slow-smoked central Texas brisket."}]},
+{id:78,abbr:"OU",espn:"oklahoma",name:"Oklahoma Sooners",arena:"Lloyd Noble Center",city:"Norman, OK",div:"SEC",lg:"SEC",opened:1975,cap:11100,surf:"Hardwood",rating:null,rc:"0",p:"#841617",s:"#FDF9D8",facts:[["Opened","1975"],["Capacity","11,100"],["Conference","SEC"],["Location","Norman, OK"]],dims:[["11,100","Capacity"],["1975","Opened"],["SEC","Conference"]],unique:["One national championship (1947 — NAIB)","Trae Young's one sensational season transformed Oklahoma basketball","Lon Kruger built one of the most respected programs in the Big 12","Located in Norman — a passionate college sports community"],legs:[{y:"2018",t:"Trae Young's Historic Season",d:"Young led the nation in scoring and assists — the most electrifying individual season in modern college basketball."},{y:"2016",t:"Lon Kruger's Final Four",d:"Kruger led Oklahoma to the Final Four with Buddy Hield's Heisman-like season."},{y:"2002",t:"Kelvin Sampson Era",d:"Oklahoma reached the Final Four — one of the program's most celebrated runs."}],food:[{i:"🌮",n:"Oklahoma Onion Burger",d:"A smashed patty with caramelized onions — an Oklahoma original."},{i:"🥩",n:"Oklahoma Chicken Fried Steak",d:"Breaded and fried beef cutlet with cream gravy — Oklahoma's state meal."},{i:"🍺",n:"Coop Ale Works",d:"Oklahoma City's celebrated local craft brewery."}]},
+{id:79,abbr:"LSU",espn:"lsu",name:"LSU Tigers",arena:"Pete Maravich Assembly Center",city:"Baton Rouge, LA",div:"SEC",lg:"SEC",opened:1971,cap:13215,surf:"Hardwood",rating:null,rc:"0",p:"#461D7C",s:"#FDD023",facts:[["Opened","1971"],["Capacity","13,215"],["Conference","SEC"],["Named For","Pete Maravich — Pistol Pete"]],dims:[["13,215","Capacity"],["1971","Opened"],["SEC","Conference"]],unique:["Named for Pete Maravich — the greatest scorer in college basketball history","Pistol Pete averaged 44.2 points per game — a record that will never be broken","Angel Reese and the women's team brought national attention to Baton Rouge","The PMAC is one of the SEC's most storied arenas"],legs:[{y:"1970",t:"Pistol Pete's 44.2 Points Per Game",d:"Maravich set the all-time college scoring record — a number so extraordinary it seems impossible."},{y:"2023",t:"Angel Reese — National Champions",d:"Reese's dominant performance led LSU's women to the national championship — one of college basketball's great moments."},{y:"2006",t:"Glen Davis and the SEC Title",d:"LSU reached the Final Four with Baby Davis as the anchor."}],food:[{i:"🌮",n:"Cajun Seafood",d:"Crawfish etouffee and shrimp po'boys — Baton Rouge's incredible Cajun food culture."},{i:"🎺",n:"New Orleans-Style Cuisine",d:"The influence of New Orleans's incredible food scene extends to Baton Rouge."},{i:"🍺",n:"Parish Brewing",d:"Louisiana's celebrated craft brewery from Broussard."}]},
+{id:80,abbr:"UF",espn:"florida",name:"Florida Gators",arena:"Exactech Arena at the Stephen C. O'Connell Center",city:"Gainesville, FL",div:"SEC",lg:"SEC",opened:1980,cap:10500,surf:"Hardwood",rating:null,rc:"0",p:"#0021A5",s:"#FA4616",facts:[["Opened","1980"],["Capacity","10,500"],["Conference","SEC"],["Championships","2"]],dims:[["10,500","Capacity"],["1980","Opened"],["SEC","Conference"]],unique:["Back-to-back national championships (2006, 2007) — the only team to win consecutive titles in modern era","The O'Connell Center is one of college basketball's most unique venues","Billy Donovan is one of the greatest coaches in college basketball history","Al Horford, Joakim Noah, and Corey Brewer — the dynasty roster"],legs:[{y:"2006",t:"The First Title — Joakim Noah",d:"Florida's freshman-laden team won the national championship — beginning the most improbable dynasty in modern basketball."},{y:"2007",t:"Back-to-Back Champions",d:"Florida repeated — becoming the first program since Duke in 1991-92 to win consecutive national titles."},{y:"2023",t:"Todd Golden Era Begins",d:"Golden's arrival brought renewed optimism to Florida basketball."}],food:[{i:"🌮",n:"Florida Shrimp Tacos",d:"Fresh Gulf shrimp with tropical salsa — Florida coastal cuisine."},{i:"🍊",n:"Florida Orange Juice",d:"Fresh-squeezed Florida OJ — the state's most iconic product."},{i:"🍺",n:"Swamp Head Brewery",d:"Gainesville's beloved local craft brewery."}]}
+];
+
+
+
+
+const DIVS=["SEC","Big Ten","Big 12","ACC","Big East","AAC","MWC","A-10","Sun Belt","MAC","CUSA","Ind"];
+const CATS=["Overall Experience","Food & Drinks","Atmosphere","Seats & Sightlines","Value for Money"];
+let cur=null,gLoaded=false,rankSort="rating";
+
+function espnNFL(id){return `https://a.espncdn.com/i/teamlogos/ncaa/500/${id}.png`;}
+
+// ── STORAGE ──
+function getRatings(abbr){try{return JSON.parse(localStorage.getItem("cbb_r_"+abbr)||"null");}catch(e){return null;}}
+function saveVote(abbr,scores){
+  let d=getRatings(abbr)||{count:0,totals:[0,0,0,0,0]};
+  d.count++;scores.forEach((s,i)=>d.totals[i]+=s);
+  localStorage.setItem("cbb_r_"+abbr,JSON.stringify(d));
+}
+function hasVoted(abbr){return !!localStorage.getItem("cbb_v_"+abbr);}
+function markVoted(abbr){localStorage.setItem("cbb_v_"+abbr,"1");}
+function getAvg(abbr){
+  const d=getRatings(abbr);
+  if(!d||!d.count)return null;
+  return{count:d.count,avgs:d.totals.map(t=>Math.round(t/d.count*10)/10),overall:Math.round(d.totals.reduce((a,b)=>a+b,0)/(d.count*d.totals.length)*10)/10};
+}
+function getReviews(abbr){try{return JSON.parse(localStorage.getItem("cbb_rv_"+abbr)||"[]");}catch(e){return[];}}
+function getVisited(){try{return JSON.parse(localStorage.getItem("cbb_vis")||"[]");}catch(e){return[];}}
+function toggleVis(abbr){
+  let v=getVisited();
+  v.includes(abbr)?v=v.filter(a=>a!==abbr):v.push(abbr);
+  localStorage.setItem("cbb_vis",JSON.stringify(v));
+  renderVisited();
+}
+
+// ── PAGE NAV ──
+function showPage(p){
+  ["home","rankings-page","compare-page","visited-page","sp"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.style.display="none";
+  });
+  document.querySelectorAll(".nav-links a").forEach(a=>a.classList.remove("active"));
+  if(p==="home"){document.getElementById("home").style.display="block";document.getElementById("nav-home").classList.add("active");}
+  else if(p==="rankings"){document.getElementById("rankings-page").style.display="block";document.getElementById("nav-rankings").classList.add("active");renderRankings();}
+  else if(p==="compare"){document.getElementById("compare-page").style.display="block";document.getElementById("nav-compare").classList.add("active");buildCmpSelects();}
+  else if(p==="visited"){document.getElementById("visited-page").style.display="block";document.getElementById("nav-visited").classList.add("active");renderVisited();}
+  else if(p==="sp"){document.getElementById("sp").style.display="block";}
+  window.scrollTo(0,0);
+}
+
+// ── HOME ──
+function buildHome(q){
+  const f=(q||"").toLowerCase();
+  let h="";
+  DIVS.forEach(div=>{
+    const teams=TEAMS.filter(t=>t.div===div&&(!f||t.name.toLowerCase().includes(f)||t.abbr.toLowerCase().includes(f)||t.stadium.toLowerCase().includes(f)));
+    if(!teams.length)return;
+    h+=`<div><div class="div-head"><h2>${div}</h2><div class="div-line"></div></div><div class="grid">`;
+    teams.forEach(t=>{
+      h+=`<div class="tcard" style="border-color:${t.p}44" onmouseover="this.style.borderColor='${t.p}'" onmouseout="this.style.borderColor='${t.p}44'" onclick="openModal(${t.id})">
+        <div class="lg-badge">${t.lg}</div>
+        <img src="${espnNFL(t.espn)}" alt="${t.abbr}" onerror="this.style.display='none'">
+        <div class="card-abbr" style="color:${t.p}">${t.abbr}</div>
+        <div class="tname">${t.name}</div>
+        <div class="tstadium">${t.stadium}</div>
+      </div>`;
+    });
+    h+="</div></div>";
+  });
+  document.getElementById("divs").innerHTML=h;
+}
+document.getElementById("srch").addEventListener("input",e=>buildHome(e.target.value));
+
+// ── MODAL ──
+function openModal(id){
+  const t=TEAMS.find(x=>x.id===id);if(!t)return;cur=t;
+  document.getElementById("ma").textContent=t.abbr;
+  document.getElementById("ma").style.color=t.p;
+  document.getElementById("mt").textContent=t.name;
+  document.getElementById("ms").textContent=t.stadium;
+  document.getElementById("ml").textContent="📍 "+t.city+"  ·  "+t.div;
+  document.getElementById("mf").innerHTML=[["Opened",t.opened],["Capacity",t.cap.toLocaleString()],["Surface",t.surf],["Division",t.div]]
+    .map(([l,v])=>`<div class="mf"><div class="mf-l">${l}</div><div class="mf-v">${v}</div></div>`).join("");
+  const eb=document.getElementById("meb");
+  eb.style.border="1px solid "+t.p+"66";eb.style.color=t.p;
+  eb.onclick=()=>{closeModal();openSP(t.id);};
+  document.getElementById("ov").classList.add("open");
+}
+function closeModal(){document.getElementById("ov").classList.remove("open");}
+document.getElementById("ov").addEventListener("click",e=>{if(e.target.id==="ov")closeModal();});
+
+// ── STADIUM PAGE ──
+function setTheme(t){
+  const accent=t.p;
+  const el=document.getElementById("sp");
+  const vars={
+    "--sb":"#0f0e0c","--sbd":"#0a0908",
+    "--shb":"linear-gradient(135deg,"+t.p+"35 0%,#0f0e0c 55%)",
+    "--st":"#e8e0d0","--sh":"#f5efe0","--sm":"rgba(232,224,208,0.42)",
+    "--sa":accent,"--sas":accent+"22","--sab":accent+"38",
+    "--sc":"rgba(232,220,180,0.04)","--sbr":"rgba(232,220,180,0.09)","--sbt":"#0f0e0c"
+  };
+  Object.entries(vars).forEach(([k,v])=>el.style.setProperty(k,v));
+  el.style.background="var(--sb)";el.style.color="var(--st)";
+}
+
+function openSP(id){
+  const t=TEAMS.find(x=>x.id===id);if(!t)return;cur=t;gLoaded=false;
+  setTheme(t);
+  document.getElementById("spa").textContent=t.abbr;
+  document.getElementById("spn").textContent=t.name;
+  document.getElementById("sps").textContent=t.stadium;
+  document.getElementById("spl").textContent="📍 "+t.city+"  ·  "+t.div;
+  document.getElementById("spo").textContent=t.opened;
+  document.getElementById("spc").textContent=t.cap.toLocaleString();
+  document.getElementById("spsu").textContent=t.surf;
+  const r=getAvg(t.abbr);
+  document.getElementById("spr").textContent=r?r.overall.toFixed(1)+" / 10":"N/A";
+  document.getElementById("sp-facts").innerHTML=t.facts.map(([l,v])=>`<div class="sp-fc"><div class="sp-fl">${l}</div><div class="sp-fv">${v}</div></div>`).join("");
+  document.getElementById("sp-dims").innerHTML=t.dims.map(([n,l])=>`<div class="dim"><div class="dn">${n}</div><div class="dl">${l}</div></div>`).join("");
+  document.getElementById("sp-tags").innerHTML=t.unique.map(u=>`<div class="tag">${u}</div>`).join("");
+  document.getElementById("sp-legs").innerHTML=t.legs.map(lg=>`<div class="lc"><div class="ly">${lg.y}</div><div class="lt">${lg.t}</div><div class="ld">${lg.d}</div></div>`).join("");
+  document.getElementById("sp-food").innerHTML=t.food.map(f=>`<div class="fc"><div class="fi">${f.i}</div><div><div class="fn">${f.n}</div><div class="fd">${f.d}</div></div></div>`).join("");
+  renderRatingsPanel();
+  renderReviewsPanel();
+  sTab("t-ov",document.querySelector("#sp-tabs-row .sp-tab"));
+  showPage("sp");
+}
+
+function sTab(id,el){
+  document.querySelectorAll("#sp .sp-panel").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll("#sp-tabs-row .sp-tab").forEach(t=>t.classList.remove("active"));
+  const panel=document.getElementById(id);
+  if(panel)panel.classList.add("active");
+  if(el)el.classList.add("active");
+  if(id==="t-gm"&&!gLoaded)loadGames();
+}
+
+// ── GAMES ──
+async function loadGames(){
+  if(!cur)return;
+  const list=document.getElementById("sp-games");
+  list.innerHTML="<div style='font-size:.82rem;padding:.8rem 0;color:var(--sm)'>Loading schedule...</div>";
+  try{
+    const res=await fetch("https://statsapi.mlb.com/api/v1/schedule?teamId="+cur.id+"&season=2026&gameType=R&sportId=1&startDate=2026-05-14&endDate=2026-06-30");
+    const data=await res.json();
+    const events=(data.events||[]).filter(e=>e.season&&e.season.type===2);
+    if(!events.length){list.innerHTML="<div style='font-size:.82rem;padding:.8rem 0;color:var(--sm)'>No upcoming games found.</div>";return;}
+    let h="";
+    events.slice(0,12).forEach(e=>{
+      const comp=e.competitions&&e.competitions[0];if(!comp)return;
+      const home=comp.competitors.find(c=>c.homeAway==="home");
+      const away=comp.competitors.find(c=>c.homeAway==="away");
+      if(!home||!away)return;
+      const ih=home.team.abbreviation===cur.abbr;
+      const dt=new Date(e.date);
+      const dateStr=dt.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+      const tm=dt.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZoneName:"short"});
+      h+=`<div class="gr"><div class="gd">${dateStr}</div><div class="gm">${away.team.displayName} @ ${home.team.displayName}</div><div class="gt">${tm}</div><div class="gp ${ih?"gph":"gpa"}">${ih?"Home":"Away"}</div></div>`;
+    });
+    list.innerHTML=h||"<div style='font-size:.82rem;padding:.8rem 0;color:var(--sm)'>No upcoming games found.</div>";gLoaded=true;
+  }catch(e){list.innerHTML="<div style='font-size:.82rem;padding:.8rem 0;color:var(--sm)'>Could not load schedule.</div>";}
+}
+
+// ── RATINGS ──
+function renderRatingsPanel(){
+  if(!cur)return;
+  const r=getAvg(cur.abbr);
+  const voted=hasVoted(cur.abbr);
+  const scoreEl=document.getElementById("spr");
+  if(scoreEl)scoreEl.textContent=r?r.overall.toFixed(1)+" / 10":"N/A";
+  const rb=document.getElementById("rt-score");
+  const rc=document.getElementById("rt-count");
+  const bars=document.getElementById("rt-bars");
+  const varea=document.getElementById("rt-vote-area");
+  if(!rb)return;
+  if(!r){
+    rb.textContent="N/A";rb.style.fontSize="3rem";
+    rc.textContent="No ratings yet — be the first!";
+    bars.innerHTML=CATS.map(l=>`<div class="rr"><div class="rl">${l}</div><div class="rbg"><div class="rbf" style="width:0%"></div></div><div class="rv-num">—</div></div>`).join("");
+  }else{
+    rb.textContent=r.overall.toFixed(1);rb.style.fontSize="5rem";
+    rc.textContent="out of 10 · "+r.count+(r.count===1?" rating":" ratings");
+    bars.innerHTML=CATS.map((l,i)=>`<div class="rr"><div class="rl">${l}</div><div class="rbg"><div class="rbf" style="width:${Math.round(r.avgs[i]*10)}%"></div></div><div class="rv-num">${r.avgs[i].toFixed(1)}</div></div>`).join("");
+  }
+  if(voted){
+    varea.innerHTML="<div class='vmsg' style='display:block'>You have already rated this stadium.</div>";
+  }else{
+    varea.innerHTML=`<div class="vote-form">
+      <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--sh);font-weight:700;font-style:italic;margin-bottom:1.2rem">Rate This Stadium</div>
+      ${CATS.map((cat,i)=>`<div style="margin-bottom:1.2rem">
+        <div style="font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--sm);margin-bottom:0.5rem;font-family:monospace">${cat}</div>
+        <div class="score-btns">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button class="score-btn" data-cat="${i}" data-val="${n}" onclick="selectScore(${i},${n},this)">${n}</button>`).join("")}</div>
+      </div>`).join("")}
+      <button class="vbtn" onclick="submitVote()">Submit Rating</button>
+      <div class="vmsg" id="vote-msg">Thanks for rating!</div>
+    </div>`;
+  }
+}
+
+function selectScore(catIdx,val,btn){
+  document.querySelectorAll(".score-btn[data-cat='"+catIdx+"']").forEach(b=>b.classList.remove("sel"));
+  btn.classList.add("sel");
+}
+
+function submitVote(){
+  const scores=[];
+  for(let i=0;i<CATS.length;i++){
+    const sel=document.querySelector(".score-btn[data-cat='"+i+"'].sel");
+    if(!sel){alert("Please rate all 5 categories.");return;}
+    scores.push(parseInt(sel.dataset.val));
+  }
+  saveVote(cur.abbr,scores);markVoted(cur.abbr);
+  renderRatingsPanel();
+  document.getElementById("spr").textContent=getAvg(cur.abbr).overall.toFixed(1)+" / 10";
+}
+
+// ── REVIEWS ──
+function renderReviewsPanel(){
+  if(!cur)return;
+  const reviews=getReviews(cur.abbr);
+  const list=document.getElementById("rv-list");
+  const form=document.getElementById("rv-form-area");
+  if(!list||!form)return;
+  list.innerHTML=reviews.length?reviews.slice().reverse().map(rv=>`<div class="rv-item"><div style="display:flex;align-items:center;gap:0.8rem"><div class="rv-score">${rv.score}/10</div><div class="rv-date">${rv.date}</div></div><div class="rv-text">${rv.text}</div></div>`).join(""):"<div style='font-size:0.82rem;color:var(--sm)'>No reviews yet. Be the first!</div>";
+  form.innerHTML=`<div style="background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.5rem">
+    <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--sh);font-weight:700;font-style:italic;margin-bottom:0.8rem">Leave a Review</div>
+    <div style="font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--sm);margin-bottom:0.5rem;font-family:monospace">Your score</div>
+    <div class="score-btns" id="rv-btns">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button class="score-btn" data-rv="${n}" onclick="selectRvScore(${n},this)">${n}</button>`).join("")}</div>
+    <textarea class="rv-textarea" id="rv-text" placeholder="Share your experience at this stadium..."></textarea>
+    <button class="vbtn" onclick="submitReview()" style="margin-top:0.8rem">Post Review</button>
+    <div class="vmsg" id="rv-msg">Review posted!</div>
+  </div>`;
+}
+
+function selectRvScore(n,btn){
+  document.querySelectorAll("#rv-btns .score-btn").forEach(b=>b.classList.remove("sel"));
+  btn.classList.add("sel");
+}
+
+function submitReview(){
+  const sel=document.querySelector("#rv-btns .score-btn.sel");
+  const text=document.getElementById("rv-text").value.trim();
+  if(!sel){alert("Please select a score.");return;}
+  if(!text){alert("Please write something.");return;}
+  const reviews=getReviews(cur.abbr);
+  reviews.push({score:parseInt(sel.dataset.rv),text,date:new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})});
+  localStorage.setItem("cbb_rv_"+cur.abbr,JSON.stringify(reviews));
+  document.getElementById("rv-text").value="";
+  const msg=document.getElementById("rv-msg");
+  msg.style.display="block";setTimeout(()=>msg.style.display="none",2500);
+  renderReviewsPanel();
+}
+
+// ── RANKINGS ──
+function setRankSort(s,btn){
+  rankSort=s;
+  document.querySelectorAll(".rank-filter").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  renderRankings();
+}
+function renderRankings(){
+  const sorted=[...TEAMS].sort((a,b)=>{
+    if(rankSort==="rating"){const ra=getAvg(a.abbr),rb=getAvg(b.abbr);return(rb?rb.overall:0)-(ra?ra.overall:0);}
+    if(rankSort==="cap")return b.cap-a.cap;
+    if(rankSort==="oldest")return a.opened-b.opened;
+    if(rankSort==="newest")return b.opened-a.opened;
+    if(rankSort==="name")return a.name.localeCompare(b.name);
+    if(rankSort==="div")return(a.div+a.name).localeCompare(b.div+b.name);
+    return 0;
+  });
+  document.getElementById("rank-list").innerHTML=sorted.map((t,i)=>{
+    const r=getAvg(t.abbr);
+    let val,sub;
+    if(rankSort==="rating"){val=r?r.overall.toFixed(1):"N/A";sub="fan rating";}
+    else if(rankSort==="cap"){val=t.cap.toLocaleString();sub="capacity";}
+    else if(rankSort==="oldest"||rankSort==="newest"){val=t.opened;sub="year opened";}
+    else{val=t.abbr;sub=t.div;}
+    return`<div class="rank-row" onclick="openSP(${t.id})">
+      <div class="rank-num">${i+1}</div>
+      <img class="rank-logo" src="${espnNFL(t.espn)}" alt="${t.abbr}" onerror="this.style.display='none'">
+      <div><div class="rank-name">${t.name}</div><div class="rank-stadium">${t.stadium}</div></div>
+      <div style="text-align:right;margin-left:auto"><div class="rank-val" style="color:${t.p}">${val}</div><div class="rank-sub">${sub}</div></div>
+    </div>`;
+  }).join("");
+}
+
+// ── COMPARE ──
+function buildCmpSelects(){
+  const opts=TEAMS.map(t=>`<option value="${t.id}">${t.name} — ${t.stadium}</option>`).join("");
+  const a=document.getElementById("cmp-a"),b=document.getElementById("cmp-b");
+  if(!a.innerHTML){a.innerHTML=opts;b.innerHTML=opts;b.selectedIndex=1;}
+  renderCompare();
+}
+function renderCompare(){
+  const ta=TEAMS.find(t=>t.id===parseInt(document.getElementById("cmp-a").value));
+  const tb=TEAMS.find(t=>t.id===parseInt(document.getElementById("cmp-b").value));
+  if(!ta||!tb)return;
+  const ra=getAvg(ta.abbr),rb=getAvg(tb.abbr);
+  const rows=[
+    ["Opened",ta.opened,tb.opened,false,ta.opened<tb.opened,tb.opened<ta.opened],
+    ["Capacity",ta.cap.toLocaleString(),tb.cap.toLocaleString(),false,ta.cap>tb.cap,tb.cap>ta.cap],
+    ["Surface",ta.surf,tb.surf,true,false,false],
+    ["Division",ta.div,tb.div,true,false,false],
+    ["Fan Rating",ra?ra.overall.toFixed(1):"N/A",rb?rb.overall.toFixed(1):"N/A",false,ra&&rb&&ra.overall>rb.overall,ra&&rb&&rb.overall>ra.overall],
+    ["LF Line",ta.dims[0][0]+"ft",tb.dims[0][0]+"ft",true,false,false],
+    ["Center",ta.dims[2][0]+"ft",tb.dims[2][0]+"ft",true,false,false],
+    ["RF Line",ta.dims[3][0]+"ft",tb.dims[3][0]+"ft",true,false,false],
+  ];
+  document.getElementById("cmp-result").innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-bottom:1rem">
+      <div style="background:#141210;padding:1.5rem;display:flex;align-items:center;gap:1rem;border:1px solid rgba(232,220,180,0.09)">
+        <img src="${espnNFL(ta.espn)}" style="width:44px;height:44px;object-fit:contain" onerror="this.style.display='none'">
+        <div><div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:#f0ead8;font-weight:900">${ta.name}</div><div style="font-size:0.65rem;color:rgba(232,224,208,0.35);font-family:monospace">${ta.stadium}</div></div>
+      </div>
+      <div style="background:#141210;padding:1.5rem;display:flex;align-items:center;gap:1rem;border:1px solid rgba(232,220,180,0.09)">
+        <img src="${espnNFL(tb.espn)}" style="width:44px;height:44px;object-fit:contain" onerror="this.style.display='none'">
+        <div><div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:#f0ead8;font-weight:900">${tb.name}</div><div style="font-size:0.65rem;color:rgba(232,224,208,0.35);font-family:monospace">${tb.stadium}</div></div>
+      </div>
+    </div>
+    <div style="border:1px solid rgba(232,220,180,0.09);border-radius:2px;overflow:hidden">
+      ${rows.map(([lbl,av,bv,neutral,aw,bw])=>`<div class="cmp-row">
+        <div class="cmp-cell" style="border-right:1px solid rgba(232,220,180,0.06)"><div class="cmp-lbl">${lbl}</div><div class="cmp-val ${aw?"cmp-win":""}">${av}</div></div>
+        <div class="cmp-cell"><div class="cmp-lbl">${lbl}</div><div class="cmp-val ${bw?"cmp-win":""}">${bv}</div></div>
+      </div>`).join("")}
+    </div>
+    <div style="margin-top:0.8rem;font-size:0.65rem;color:rgba(232,224,208,0.25);font-family:monospace">Gold values indicate the winner for that stat.</div>`;
+}
+
+// ── VISITED ──
+function renderVisited(){
+  const v=getVisited();
+  document.getElementById("vis-sub").textContent=v.length===0?"Track every ballpark you have visited.":v.length+" of 30 parks visited";
+  document.getElementById("vis-grid").innerHTML=TEAMS.map(t=>`
+    <div class="vis-card ${v.includes(t.abbr)?"been":""}" onclick="toggleVis('${t.abbr}')">
+      <div class="vis-check">✓</div>
+      <img src="${espnNFL(t.espn)}" style="width:38px;height:38px;object-fit:contain" onerror="this.style.display='none'">
+      <div style="font-family:'Playfair Display',serif;font-size:0.95rem;font-weight:700;color:${t.p}">${t.abbr}</div>
+      <div style="font-size:0.58rem;color:rgba(232,224,208,0.35);text-align:center;line-height:1.3;font-family:monospace">${t.stadium}</div>
+    </div>`).join("");
+}
+
+showPage("home");
+buildHome();
+</script>
+</body>
+</html>

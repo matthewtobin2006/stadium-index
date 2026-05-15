@@ -452,21 +452,72 @@ function setConf(conf, btn){
   btn.classList.add("active");
   renderTeams();
 }
+function renderTeams(filter = "") {
 
-function renderTeams(){
-  let teams = TEAMS;
-  if(selectedConf !== "ALL") teams = teams.filter(t=>t.conf===selectedConf);
-  if(selectedState) teams = teams.filter(t=>t.state===selectedState);
-
-  const header = document.getElementById("results-header");
   const grid = document.getElementById("teams-grid");
+  const header = document.getElementById("results-header");
 
-  if(!selectedState && selectedConf==="ALL"){
-    header.innerHTML = "Click a state to explore stadiums";
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">&#9650; Select a state on the map above</div>`;
-    return;
-  }
+  grid.innerHTML = "";
+  header.innerHTML = "College Football Stadiums";
 
+  const conferences = [
+    "SEC",
+    "Big Ten",
+    "ACC",
+    "Big 12",
+    "AAC",
+    "MWC",
+    "Sun Belt",
+    "MAC",
+    "CUSA",
+    "Independent"
+  ];
+
+  conferences.forEach(conf => {
+
+    const teams = TEAMS.filter(team =>
+      team.conf === conf &&
+      (
+        team.name.toLowerCase().includes(filter.toLowerCase()) ||
+        team.stadium.toLowerCase().includes(filter.toLowerCase()) ||
+        team.abbr.toLowerCase().includes(filter.toLowerCase())
+      )
+    );
+
+    if (!teams.length) return;
+
+    const section = document.createElement("div");
+
+    section.style.gridColumn = "1 / -1";
+
+    section.innerHTML = `
+      <div class="div-head">
+        <h2>${conf}</h2>
+        <div class="div-line"></div>
+      </div>
+
+      <div class="grid">
+        ${teams.map(team => `
+          <div class="tcard" onclick="openModal('${team.abbr}')">
+
+            <div class="conf-badge">${team.conf}</div>
+
+            <div class="card-abbr">${team.abbr}</div>
+
+            <div class="tname">${team.name}</div>
+
+            <div class="tstadium">${team.stadium}</div>
+
+          </div>
+        `).join("")}
+      </div>
+    `;
+
+    grid.appendChild(section);
+
+  });
+
+}
   const stateNames = {AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",CT:"Connecticut",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming"};
 
   const label = selectedState ? `<span>${stateNames[selectedState]||selectedState}</span>${selectedConf!=="ALL"?" · "+selectedConf:""}` : `<span>${selectedConf}</span>`;
@@ -524,6 +575,7 @@ window.onload = function(){
 };
 
 
+renderTeams();
 </script>
 </body>
 </html>

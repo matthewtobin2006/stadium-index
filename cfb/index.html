@@ -518,49 +518,22 @@ function renderTeams(filter = "") {
   });
 
 }
-  const stateNames = {AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",CT:"Connecticut",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming"};
-
-  const label = selectedState ? `<span>${stateNames[selectedState]||selectedState}</span>${selectedConf!=="ALL"?" · "+selectedConf:""}` : `<span>${selectedConf}</span>`;
-  header.innerHTML = label + ` — ${teams.length} Team${teams.length!==1?"s":""}`;
-
-  if(!teams.length){
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">No FBS teams found for this selection.</div>`;
-    return;
-  }
-
-  grid.innerHTML = teams.map(t=>`
-    <div class="tcard" style="border-color:${t.p}44" onmouseover="this.style.borderColor='${t.p}'" onmouseout="this.style.borderColor='${t.p}44'" onclick="openModal('${t.abbr}')">
-      <div class="conf-badge">${t.conf}</div>
-      <img src="https://a.espncdn.com/i/teamlogos/ncaa/500/${espn(t.abbr)}.png" alt="${t.abbr}" onerror="this.style.display='none'" style="width:40px;height:40px;object-fit:contain">
-      <div class="card-abbr" style="color:${t.p}">${t.abbr}</div>
-      <div class="tname">${t.name}</div>
-      <div class="tstadium">${t.stadium}</div>
-    </div>`).join("");
-
-  // Highlight states that have teams
-  const statesWithTeams = [...new Set(TEAMS.filter(t=>selectedConf==="ALL"||t.conf===selectedConf).map(t=>t.state))];
-  document.querySelectorAll(".state-path").forEach(p=>{
-    if(p.dataset.state===selectedState) p.style.fill="rgba(232,208,128,0.25)";
-    else if(statesWithTeams.includes(p.dataset.state)) p.style.fill="#2a2420";
-    else p.style.fill="";
-  });
-}
-
-function openModal(abbr){
   const t = TEAMS.find(x=>x.abbr===abbr);
   if(!t)return;
-  document.getElementById("m-conf").textContent = t.conf;
-  document.getElementById("m-name").textContent = t.name;
-  document.getElementById("m-name").style.color = t.p;
-  document.getElementById("m-stadium").textContent = t.stadium;
-  document.getElementById("m-loc").textContent = "📍 "+t.city;
+
+  document.getElementById("ma").textContent = t.abbr;
+  document.getElementById("ma").style.color = t.p;
+  document.getElementById("mt").textContent = t.name+" — "+t.conf;
+  document.getElementById("ms").textContent = t.stadium;
+  document.getElementById("ml").textContent = "📍 "+t.city;
   document.getElementById("m-facts").innerHTML = [
     ["Capacity",t.cap.toLocaleString()],
     ["Opened",t.opened],
     ["Conference",t.conf],
     ["State",t.state]
   ].map(([l,v])=>`<div class="mf"><div class="mf-l">${l}</div><div class="mf-v">${v}</div></div>`).join("");
-  document.getElementById("m-tags").innerHTML = t.unique.map(u=>`<div class="m-tag">${u}</div>`).join("");
+  document.getElementById("mf").innerHTML = [["Capacity",t.cap.toLocaleString()],["Opened",t.opened],["Conference",t.conf],["State",t.state]].map(([l,v])=>`<div class="mf"><div class="mf-l">${l}</div><div class="mf-v">${v}</div></div>`).join("");
+  const eb=document.getElementById("meb");eb.style.border="1px solid "+t.p+"66";eb.style.color=t.p;eb.onclick=()=>{closeModal();};
   document.getElementById("ov").classList.add("open");
 }
 function closeModal(){document.getElementById("ov").classList.remove("open");}
@@ -574,8 +547,15 @@ window.onload = function(){
   });
 };
 
+function closeModal(){document.getElementById("ov").classList.remove("open");}
+document.getElementById("ov").addEventListener("click",e=>{if(e.target.id==="ov")closeModal();});
 
-renderTeams();
+const CONFS=["SEC","Big Ten","Big 12","ACC","MWC","Sun Belt","AAC","MAC","CUSA","Ind"];
+function showPage(p){["home","rankings-page","compare-page","visited-page","sp"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display="none";});document.querySelectorAll(".nav-links a").forEach(a=>a.classList.remove("active"));document.getElementById(p==="home"?"home":p+"-page").style.display="block";const nav=document.getElementById("nav-"+(p==="home"?"home":p));if(nav)nav.classList.add("active");}
+function buildHome(q){const f=(q||"").toLowerCase();let h="";CONFS.forEach(conf=>{const teams=TEAMS.filter(t=>t.conf===conf&&(!f||t.name.toLowerCase().includes(f)||t.abbr.toLowerCase().includes(f)||t.stadium.toLowerCase().includes(f)));if(!teams.length)return;h+=`<div><div class="div-head"><h2>${conf}</h2><div class="div-line"></div></div><div class="grid">`;teams.forEach(t=>{h+=`<div class="tcard" style="border-color:${t.p}44" onmouseover="this.style.borderColor='${t.p}'" onmouseout="this.style.borderColor='${t.p}44'" onclick="openModal('${t.abbr}')"><div class="conf-badge">${t.conf}</div><img src="https://a.espncdn.com/i/teamlogos/ncaa/500/${espn(t.abbr)}.png" onerror="this.style.display='none'" style="width:40px;height:40px;object-fit:contain"><div class="card-abbr" style="color:${t.p}">${t.abbr}</div><div class="tname">${t.name}</div><div class="tstadium">${t.stadium}</div></div>`;});h+="</div></div>";});document.getElementById("divs").innerHTML=h;}
+document.getElementById("srch").addEventListener("input",e=>buildHome(e.target.value));
+
+buildHome();
 </script>
 </body>
 </html>

@@ -518,24 +518,7 @@ function renderTeams(filter = "") {
   });
 
 }
-  const t = TEAMS.find(x=>x.abbr===abbr);
-  if(!t)return;
-
-  document.getElementById("ma").textContent = t.abbr;
-  document.getElementById("ma").style.color = t.p;
-  document.getElementById("mt").textContent = t.name+" — "+t.conf;
-  document.getElementById("ms").textContent = t.stadium;
-  document.getElementById("ml").textContent = "📍 "+t.city;
-  document.getElementById("m-facts").innerHTML = [
-    ["Capacity",t.cap.toLocaleString()],
-    ["Opened",t.opened],
-    ["Conference",t.conf],
-    ["State",t.state]
-  ].map(([l,v])=>`<div class="mf"><div class="mf-l">${l}</div><div class="mf-v">${v}</div></div>`).join("");
-  document.getElementById("mf").innerHTML = [["Capacity",t.cap.toLocaleString()],["Opened",t.opened],["Conference",t.conf],["State",t.state]].map(([l,v])=>`<div class="mf"><div class="mf-l">${l}</div><div class="mf-v">${v}</div></div>`).join("");
-  const eb=document.getElementById("meb");eb.style.border="1px solid "+t.p+"66";eb.style.color=t.p;eb.onclick=()=>{closeModal();};
-  document.getElementById("ov").classList.add("open");
-}
+ 
 function closeModal(){document.getElementById("ov").classList.remove("open");}
 document.getElementById("ov").addEventListener("click",e=>{if(e.target.id==="ov")closeModal();});
 

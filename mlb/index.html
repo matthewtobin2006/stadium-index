@@ -1,1 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ballpark Index</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0f0e0c;font-family:"DM Sans",sans-serif;color:#e8e0d0}
+#home,#rankings-page,#compare-page,#visited-page{display:none}
+#sp{display:none}
 
+nav{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 2.5rem;border-bottom:1px solid rgba(232,220,180,0.1);background:#0f0e0c;position:sticky;top:0;z-index:50}
+.nav-logo{font-family:"Playfair Display",serif;font-size:1.25rem;letter-spacing:0.02em;color:#e8d080;font-style:italic}
+.nav-links{display:flex;gap:2.5rem;list-style:none}
+.nav-links a{color:rgba(232,224,208,0.4);text-decoration:none;font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;transition:color 0.2s;font-weight:500;cursor:pointer}
+.nav-links a:hover,.nav-links a.active{color:#e8d080}
+
+.hero{padding:3.5rem 2.5rem 3rem;border-bottom:1px solid rgba(232,220,180,0.08)}
+.hero-eye{font-size:0.65rem;letter-spacing:0.25em;text-transform:uppercase;color:#e8d080;margin-bottom:1rem;font-family:"DM Mono",monospace}
+.hero-title{font-family:"Playfair Display",serif;font-size:clamp(2.8rem,5vw,4.5rem);color:#f0ead8;line-height:1.05;margin-bottom:1rem;font-weight:900}
+.hero-title span{color:#e8d080;font-style:italic}
+.hero-sub{font-size:0.9rem;color:rgba(232,224,208,0.45);margin-bottom:2rem;line-height:1.7;max-width:420px}
+.search-box{max-width:380px;background:rgba(232,220,180,0.05);border:1px solid rgba(232,220,180,0.15);border-radius:2px;display:flex;align-items:center;padding:0 1rem}
+.search-box input{flex:1;background:none;border:none;outline:none;color:#e8e0d0;font-family:"DM Sans",sans-serif;font-size:0.84rem;padding:0.75rem 0.4rem}
+.search-box input::placeholder{color:rgba(232,224,208,0.22)}
+
+.content{padding:0 2.5rem 3rem}
+.div-head{display:flex;align-items:center;gap:1rem;padding:2rem 0 1rem}
+.div-head h2{font-family:"DM Mono",monospace;font-size:0.7rem;letter-spacing:0.2em;color:rgba(232,220,180,0.3);white-space:nowrap;text-transform:uppercase}
+.div-line{flex:1;height:1px;background:rgba(232,220,180,0.08)}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+
+.tcard{background:rgba(232,220,180,0.03);border-radius:3px;padding:1.1rem 0.7rem 0.9rem;display:flex;flex-direction:column;align-items:center;gap:0.4rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(232,220,180,0.07);position:relative}
+.tcard:hover{background:rgba(232,220,180,0.07);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.4)}
+.lg-badge{position:absolute;top:6px;right:7px;font-size:0.5rem;letter-spacing:0.1em;color:rgba(232,220,180,0.22);font-family:"DM Mono",monospace}
+.tcard img{width:42px;height:42px;object-fit:contain}
+.card-abbr{font-family:"Playfair Display",serif;font-size:1.05rem;font-weight:700}
+.tname{font-size:0.62rem;color:rgba(232,224,208,0.38);text-align:center;line-height:1.3}
+.tstadium{font-size:0.55rem;color:rgba(232,224,208,0.18);text-align:center;font-family:"DM Mono",monospace}
+
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:999;align-items:center;justify-content:center;padding:1rem}
+.overlay.open{display:flex}
+.modal{background:#141210;border:1px solid rgba(232,220,180,0.12);border-radius:3px;width:480px;max-width:100%;padding:2.2rem}
+.m-abbr{font-family:"Playfair Display",serif;font-size:3.2rem;line-height:1;font-weight:900;font-style:italic}
+.m-team{font-size:0.7rem;color:rgba(232,224,208,0.35);margin-bottom:1.2rem;letter-spacing:0.15em;text-transform:uppercase;font-family:"DM Mono",monospace}
+.m-sname{font-size:1.5rem;font-weight:700;color:#f0ead8;margin-bottom:0.3rem;font-family:"Playfair Display",serif}
+.m-loc{font-size:0.72rem;color:rgba(232,224,208,0.3);margin-bottom:1.4rem;font-family:"DM Mono",monospace}
+.m-facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem}
+.mf{background:rgba(232,220,180,0.04);border:1px solid rgba(232,220,180,0.08);border-radius:2px;padding:0.85rem 1rem}
+.mf-l{font-size:0.55rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(232,224,208,0.25);margin-bottom:0.3rem;font-family:"DM Mono",monospace}
+.mf-v{font-size:0.95rem;font-weight:500;color:#e8e0d0}
+.m-btns{display:flex;gap:0.6rem}
+.m-btn-exp{flex:1;background:rgba(232,220,180,0.06);border-radius:2px;font-family:"DM Sans",sans-serif;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.8rem;cursor:pointer;transition:background 0.2s;font-weight:500}
+.m-btn-exp:hover{background:rgba(232,220,180,0.12)}
+.m-btn-back{background:none;border:1px solid rgba(232,220,180,0.1);color:rgba(232,224,208,0.4);font-family:"DM Sans",sans-serif;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.8rem 1.2rem;border-radius:2px;cursor:pointer}
+
+#sp{min-height:100vh}
+.sp-nav{display:flex;align-items:center;padding:1.2rem 2.5rem;border-bottom:1px solid var(--sbr);background:var(--sbd)}
+.sp-logo{font-family:"Playfair Display",serif;font-size:1.25rem;color:var(--sa);flex:1;font-style:italic}
+.sp-back{font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--sm);cursor:pointer;font-family:"DM Mono",monospace}
+.sp-back:hover{color:var(--sa)}
+.sp-hero{padding:3rem 2.5rem 2.5rem;border-bottom:1px solid var(--sbr);background:var(--shb)}
+.sp-top{display:flex;align-items:flex-end;gap:1.6rem;margin-bottom:2rem}
+.sp-big{font-family:"Playfair Display",serif;font-size:5rem;color:var(--sa);line-height:1;font-weight:900;font-style:italic}
+.sp-tt h1{font-family:"Playfair Display",serif;font-size:2.4rem;color:var(--sh);line-height:1.05;font-weight:900}
+.sp-sname{font-size:1rem;color:var(--sa);margin-top:0.4rem;font-weight:500}
+.sp-loc{font-size:0.68rem;color:var(--sm);margin-top:0.2rem;font-family:"DM Mono",monospace}
+.sp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.sp-stat{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1rem 1.2rem}
+.sp-sl{font-size:0.55rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--sm);margin-bottom:0.35rem;font-family:"DM Mono",monospace}
+.sp-sv{font-size:1.05rem;font-weight:500;color:var(--sh)}
+.sp-sv.ac{color:var(--sa)}
+.sp-tabs{display:flex;padding:0 2.5rem;border-bottom:1px solid var(--sbr);background:var(--sbd);overflow-x:auto}
+.sp-tab{font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--sm);padding:1rem 1.1rem;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;font-family:"DM Mono",monospace;white-space:nowrap}
+.sp-tab:hover{color:var(--st)}
+.sp-tab.active{color:var(--sa);border-bottom-color:var(--sa)}
+.sp-panel{display:none;padding:2.5rem 2.5rem 3.5rem}
+.sp-panel.active{display:block}
+.sp-sec{font-family:"Playfair Display",serif;font-size:1.3rem;color:var(--sh);margin-bottom:1.4rem;margin-top:0.5rem;font-weight:700;font-style:italic}
+.sp-fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:2.5rem}
+.sp-fc{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.1rem 1.2rem}
+.sp-fl{font-size:0.55rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--sm);margin-bottom:0.4rem;font-family:"DM Mono",monospace}
+.sp-fv{font-size:0.9rem;color:var(--st);line-height:1.5}
+.dims{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:2.5rem}
+.dim{background:var(--sas);border:1px solid var(--sab);border-radius:2px;padding:1.1rem;text-align:center}
+.dn{font-family:"Playfair Display",serif;font-size:1.8rem;color:var(--sa);line-height:1;font-weight:900}
+.dl{font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--sm);margin-top:0.35rem;font-family:"DM Mono",monospace}
+.tags{display:flex;flex-wrap:wrap;gap:10px}
+.tag{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;font-size:0.75rem;color:var(--st);padding:0.5rem 0.9rem;line-height:1.5}
+.game-list{border-top:1px solid var(--sbr)}
+.gr{display:flex;align-items:center;gap:1rem;padding:1rem 0;border-bottom:1px solid var(--sbr)}
+.gd{font-size:0.65rem;color:var(--sm);width:80px;flex-shrink:0;font-family:"DM Mono",monospace}
+.gm{flex:1;font-size:0.85rem;color:var(--st)}
+.gt{font-size:0.65rem;color:var(--sm);font-family:"DM Mono",monospace}
+.gp{font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.22rem 0.55rem;border-radius:2px;flex-shrink:0;font-family:"DM Mono",monospace}
+.gph{background:var(--sas);color:var(--sa)}
+.gpa{background:var(--sc);color:var(--sm)}
+.lc{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.5rem 1.6rem;margin-bottom:12px}
+.ly{font-size:0.6rem;color:var(--sa);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.5rem;font-family:"DM Mono",monospace}
+.lt{font-size:1rem;font-weight:700;color:var(--sh);margin-bottom:0.5rem;font-family:"Playfair Display",serif}
+.ld{font-size:0.82rem;color:var(--sm);line-height:1.7}
+.fc{display:flex;gap:1.3rem;background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.4rem 1.5rem;margin-bottom:12px}
+.fi{font-size:1.8rem;flex-shrink:0;margin-top:0.1rem}
+.fn{font-size:0.95rem;font-weight:700;color:var(--sh);margin-bottom:0.4rem;font-family:"Playfair Display",serif}
+.fd{font-size:0.82rem;color:var(--sm);line-height:1.7}
+
+.rbox{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:2rem;text-align:center;margin-bottom:1.5rem}
+.rb{font-family:"Playfair Display",serif;font-size:5rem;color:var(--sa);line-height:1;font-weight:900;font-style:italic}
+.rs{font-size:0.68rem;color:var(--sm);margin-top:0.2rem;font-family:"DM Mono",monospace}
+.rbars{margin:1.5rem 0 0;text-align:left}
+.rr{display:flex;align-items:center;gap:1rem;margin-bottom:0.8rem}
+.rl{font-size:0.7rem;color:var(--sm);width:130px;flex-shrink:0}
+.rbg{flex:1;background:var(--sbr);border-radius:1px;height:4px}
+.rbf{height:4px;border-radius:1px;background:var(--sa)}
+.rv-num{font-size:0.7rem;color:var(--sa);width:30px;text-align:right;font-family:"DM Mono",monospace}
+.vote-form{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.5rem;margin-top:1.5rem}
+.score-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:0.5rem}
+.score-btn{width:36px;height:36px;border-radius:2px;border:1px solid var(--sbr);background:transparent;color:var(--st);font-family:"DM Sans",sans-serif;font-size:0.8rem;cursor:pointer;transition:all 0.15s}
+.score-btn.sel{background:var(--sa);color:var(--sbt);border-color:var(--sa)}
+.vbtn{border:none;font-family:"DM Sans",sans-serif;font-size:0.75rem;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;padding:0.85rem 2rem;border-radius:2px;cursor:pointer;margin-top:1.2rem;background:var(--sa);color:var(--sbt);transition:opacity 0.2s;display:inline-block}
+.vbtn:hover{opacity:0.85}
+.vmsg{font-size:0.75rem;color:var(--sa);margin-top:0.8rem;display:none;font-family:"DM Mono",monospace}
+
+.rv-item{padding:1.2rem 0;border-bottom:1px solid var(--sbr)}
+.rv-item:last-child{border-bottom:none}
+.rv-score{font-family:"Playfair Display",serif;font-size:1.2rem;color:var(--sa);font-weight:900;font-style:italic}
+.rv-text{font-size:0.82rem;color:var(--sm);line-height:1.65;margin-top:0.3rem}
+.rv-date{font-size:0.6rem;color:rgba(232,224,208,0.22);font-family:"DM Mono",monospace;margin-top:0.3rem}
+.rv-textarea{width:100%;background:var(--sc);border:1px solid var(--sbr);border-radius:2px;color:var(--st);font-family:"DM Sans",sans-serif;font-size:0.84rem;padding:0.85rem 1rem;resize:vertical;min-height:90px;outline:none;margin-top:0.8rem}
+
+.rank-filter{background:rgba(232,220,180,0.04);border:1px solid rgba(232,220,180,0.12);border-radius:2px;color:rgba(232,224,208,0.5);font-family:"DM Mono",monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.45rem 0.9rem;cursor:pointer;transition:all 0.2s}
+.rank-filter.active{background:rgba(232,208,128,0.12);border-color:#e8d080;color:#e8d080}
+.rank-row{display:flex;align-items:center;gap:1.2rem;padding:1rem 1.2rem;background:rgba(232,220,180,0.03);border:1px solid rgba(232,220,180,0.07);border-radius:2px;margin-bottom:8px;cursor:pointer;transition:all 0.18s}
+.rank-row:hover{background:rgba(232,220,180,0.07);transform:translateX(4px)}
+.rank-num{font-family:"Playfair Display",serif;font-size:1.4rem;color:rgba(232,220,180,0.2);width:36px;flex-shrink:0;font-weight:900;font-style:italic}
+.rank-logo{width:36px;height:36px;object-fit:contain;flex-shrink:0}
+.rank-name{font-size:0.88rem;font-weight:500;color:#f0ead8;margin-bottom:0.18rem}
+.rank-stadium{font-size:0.68rem;color:rgba(232,224,208,0.35);font-family:"DM Mono",monospace}
+.rank-val{font-family:"Playfair Display",serif;font-size:1.5rem;font-weight:900;font-style:italic}
+.rank-sub{font-size:0.6rem;color:rgba(232,224,208,0.3);font-family:"DM Mono",monospace;text-align:right;margin-top:0.1rem}
+
+.cmp-row{display:grid;grid-template-columns:1fr 1fr}
+.cmp-cell{padding:0.9rem 1.2rem;border-bottom:1px solid rgba(232,220,180,0.06)}
+.cmp-lbl{font-size:0.55rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(232,224,208,0.28);margin-bottom:0.3rem;font-family:"DM Mono",monospace}
+.cmp-val{font-size:0.9rem;color:#e8e0d0;font-weight:500}
+.cmp-win{color:#e8d080}
+
+.vis-card{background:rgba(232,220,180,0.03);border:1px solid rgba(232,220,180,0.07);border-radius:3px;padding:1rem 0.7rem;display:flex;flex-direction:column;align-items:center;gap:0.4rem;cursor:pointer;transition:all 0.2s;position:relative}
+.vis-card.been{border-color:rgba(232,208,128,0.4);background:rgba(232,208,128,0.07)}
+.vis-card:hover{transform:translateY(-2px)}
+.vis-check{position:absolute;top:6px;left:7px;font-size:0.7rem;color:#e8d080;opacity:0}
+.vis-card.been .vis-check{opacity:1}
+
+.page-head{margin-bottom:2rem}
+.page-eye{font-family:"DM Mono",monospace;font-size:0.65rem;letter-spacing:0.25em;text-transform:uppercase;color:#e8d080;margin-bottom:0.6rem}
+.page-title{font-family:"Playfair Display",serif;font-size:2.8rem;color:#f5efe0;font-weight:900;margin-bottom:0.5rem}
+.page-sub{font-size:0.85rem;color:rgba(232,224,208,0.4);line-height:1.6}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">&#9918; Ballpark Index</div>
+  <ul class="nav-links">
+    <li><a onclick="showPage('home')" id="nav-home" class="active">Stadiums</a></li>
+    <li><a onclick="showPage('rankings')" id="nav-rankings">Rankings</a></li>
+    <li><a onclick="showPage('compare')" id="nav-compare">Compare</a></li>
+    <li><a onclick="showPage('visited')" id="nav-visited">My Parks</a></li>
+  </ul>
+</nav>
+
+<div id="home">
+  <div class="hero">
+    <div class="hero-eye">All 30 MLB Ballparks</div>
+    <h1 class="hero-title">Every Park.<br><span>Every Story.</span></h1>
+    <p class="hero-sub">Explore the cathedrals of America&#39;s pastime.</p>
+    <div class="search-box"><input id="srch" type="text" placeholder="Search a team or stadium..."></div>
+  </div>
+  <div class="content" id="divs"></div>
+</div>
+
+<div id="rankings-page" style="padding:2.5rem;min-height:100vh">
+  <div style="max-width:900px;margin:0 auto">
+    <div class="page-head">
+      <div class="page-eye">Ballpark Index</div>
+      <div class="page-title">Stadium Rankings</div>
+      <div class="page-sub">Sort and filter all 30 MLB ballparks.</div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:2rem">
+      <button class="rank-filter active" onclick="setRankSort('rating',this)">Fan Rating</button>
+      <button class="rank-filter" onclick="setRankSort('cap',this)">Capacity</button>
+      <button class="rank-filter" onclick="setRankSort('oldest',this)">Oldest First</button>
+      <button class="rank-filter" onclick="setRankSort('newest',this)">Newest First</button>
+      <button class="rank-filter" onclick="setRankSort('name',this)">A&#8211;Z</button>
+      <button class="rank-filter" onclick="setRankSort('div',this)">By Division</button>
+    </div>
+    <div id="rank-list"></div>
+  </div>
+</div>
+
+<div id="compare-page" style="padding:2.5rem;min-height:100vh">
+  <div style="max-width:900px;margin:0 auto">
+    <div class="page-head">
+      <div class="page-eye">Ballpark Index</div>
+      <div class="page-title">Compare Stadiums</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem">
+      <div>
+        <div style="font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(232,224,208,0.35);margin-bottom:0.5rem;font-family:DM Mono,monospace">Stadium One</div>
+        <select id="cmp-a" onchange="renderCompare()" style="width:100%;background:#141210;border:1px solid rgba(232,220,180,0.15);border-radius:2px;color:#e8e0d0;font-family:DM Sans,sans-serif;font-size:0.85rem;padding:0.75rem 1rem;outline:none;cursor:pointer"></select>
+      </div>
+      <div>
+        <div style="font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(232,224,208,0.35);margin-bottom:0.5rem;font-family:DM Mono,monospace">Stadium Two</div>
+        <select id="cmp-b" onchange="renderCompare()" style="width:100%;background:#141210;border:1px solid rgba(232,220,180,0.15);border-radius:2px;color:#e8e0d0;font-family:DM Sans,sans-serif;font-size:0.85rem;padding:0.75rem 1rem;outline:none;cursor:pointer"></select>
+      </div>
+    </div>
+    <div id="cmp-result"></div>
+  </div>
+</div>
+
+<div id="visited-page" style="padding:2.5rem;min-height:100vh">
+  <div style="max-width:900px;margin:0 auto">
+    <div class="page-head">
+      <div class="page-eye">Ballpark Index</div>
+      <div class="page-title">My Parks</div>
+      <div class="page-sub" id="vis-sub">Track every ballpark you have visited.</div>
+    </div>
+    <div id="vis-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px"></div>
+  </div>
+</div>
+
+<div class="overlay" id="ov">
+  <div class="modal">
+    <div class="m-abbr" id="ma"></div>
+    <div class="m-team" id="mt"></div>
+    <div class="m-sname" id="ms"></div>
+    <div class="m-loc" id="ml"></div>
+    <div class="m-facts" id="mf"></div>
+    <div class="m-btns">
+      <button class="m-btn-exp" id="meb">EXPLORE THIS BALLPARK &#8594;</button>
+      <button class="m-btn-back" onclick="closeModal()">BACK</button>
+    </div>
+  </div>
+</div>
+
+<div id="sp">
+  <div class="sp-nav"><div class="sp-logo">&#9918; Ballpark Index</div><div class="sp-back" onclick="showPage('home')">&#8592; All Stadiums</div></div>
+  <div class="sp-hero">
+    <div class="sp-top">
+      <div class="sp-big" id="spa"></div>
+      <div class="sp-tt"><h1 id="spn"></h1><div class="sp-sname" id="sps"></div><div class="sp-loc" id="spl"></div></div>
+    </div>
+    <div class="sp-stats">
+      <div class="sp-stat"><div class="sp-sl">Opened</div><div class="sp-sv" id="spo"></div></div>
+      <div class="sp-stat"><div class="sp-sl">Capacity</div><div class="sp-sv" id="spc"></div></div>
+      <div class="sp-stat"><div class="sp-sl">Surface</div><div class="sp-sv" id="spsu"></div></div>
+      <div class="sp-stat"><div class="sp-sl">Fan Rating</div><div class="sp-sv ac" id="spr"></div></div>
+    </div>
+  </div>
+  <div class="sp-tabs" id="sp-tabs-row">
+    <div class="sp-tab active" onclick="sTab('t-ov',this)">Overview</div>
+    <div class="sp-tab" onclick="sTab('t-gm',this)">Games</div>
+    <div class="sp-tab" onclick="sTab('t-lg',this)">Legends</div>
+    <div class="sp-tab" onclick="sTab('t-fd',this)">Food Guide</div>
+    <div class="sp-tab" onclick="sTab('t-rt',this)">Fan Ratings</div>
+    <div class="sp-tab" onclick="sTab('t-rv',this)">Reviews</div>
+  </div>
+  <div id="t-ov" class="sp-panel active">
+    <div class="sp-sec">Stadium Facts</div><div class="sp-fg" id="sp-facts"></div>
+    <div class="sp-sec">Field Dimensions</div><div class="dims" id="sp-dims"></div>
+    <div class="sp-sec">What Makes It Unique</div><div class="tags" id="sp-tags"></div>
+  </div>
+  <div id="t-gm" class="sp-panel">
+    <div class="sp-sec">Upcoming Games</div>
+    <div class="game-list" id="sp-games"><div style="font-size:.82rem;padding:.8rem 0;color:var(--sm)">Loading...</div></div>
+  </div>
+  <div id="t-lg" class="sp-panel"><div class="sp-sec">Legendary Moments</div><div id="sp-legs"></div></div>
+  <div id="t-fd" class="sp-panel"><div class="sp-sec">Food Guide</div><div id="sp-food"></div></div>
+  <div id="t-rt" class="sp-panel">
+    <div class="sp-sec">Fan Ratings</div>
+    <div class="rbox">
+      <div class="rb" id="rt-score"></div>
+      <div class="rs" id="rt-count"></div>
+      <div class="rbars" id="rt-bars"></div>
+    </div>
+    <div id="rt-vote-area"></div>
+  </div>
+  <div id="t-rv" class="sp-panel">
+    <div class="sp-sec">Reviews</div>
+    <div style="background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.5rem;margin-bottom:1.5rem" id="rv-list"></div>
+    <div id="rv-form-area"></div>
+  </div>
+</div>
+
+<script>
+const TEAMS=[
+{id:110,abbr:"BAL",name:"Baltimore Orioles",stadium:"Oriole Park at Camden Yards",city:"Baltimore, MD",div:"AL East",lg:"AL",opened:1992,cap:44970,surf:"Grass",p:"#DF4601",s:"#000000",facts:[["Architect","HOK Sport"],["Opened","1992"],["Cost","$105M"],["Style","Pioneer retro-classic park"]],dims:[["333","Left"],["364","L-Ctr"],["410","Center"],["318","Right"]],unique:["Launched the retro-classic ballpark era","Eutaw St. home run coins","Warehouse beyond right field","Longest building on the East Coast"],legs:[{y:"1995",t:"Cal Ripken Jr. — 2,131 Consecutive Games",d:"One of sport's most celebrated records. Camden Yards erupted as Ripken surpassed Lou Gehrig's streak."},{y:"1997",t:"ALCS — Jeffery Maier",d:"A 12-year-old fan deflected a Derek Jeter fly ball into a home run, igniting one of baseball's great debates."},{y:"2015",t:"Ghost Game",d:"The only fans-prohibited regular-season game in MLB history."}],food:[{i:"🦀",n:"Maryland Crab Cake",d:"Fresh-picked blue crab, Old Bay seasoning. A must-eat at Camden Yards."},{i:"🥩",n:"Boog's BBQ",d:"Former Oriole Boog Powell's legendary pit beef stand beyond right field."},{i:"🍺",n:"National Bohemian",d:"The official beer of Baltimore. A Camden Yards institution."}]},
+{id:111,abbr:"BOS",name:"Boston Red Sox",stadium:"Fenway Park",city:"Boston, MA",div:"AL East",lg:"AL",opened:1912,cap:37755,surf:"Grass",p:"#BD3039",s:"#0D2B56",facts:[["Opened","April 20, 1912"],["Status","Oldest active MLB ballpark"],["Green Monster","37ft 2in left field wall"],["Scoreboard","Hand-operated since 1934"]],dims:[["310","Left"],["379","L-Ctr"],["420","Center"],["302","Right"]],unique:["Oldest active MLB ballpark","The Green Monster — 37ft wall","Pesky's Pole — only 302ft","Manual scoreboard on the Monster"],legs:[{y:"2004",t:"The Comeback — ALCS vs Yankees",d:"Down 3-0, the Red Sox won four straight to end an 86-year drought."},{y:"1999",t:"Ted Williams Returns",d:"Williams threw the first pitch at the All-Star Game to a standing ovation."},{y:"2013",t:"Boston Strong World Series",d:"Months after the Marathon bombing, the Red Sox won the Series at Fenway for the first time since 1918."}],food:[{i:"🌭",n:"Fenway Frank",d:"Steamed hot dog in a split-top bun. Simple, perfect, irreplaceable."},{i:"🍺",n:"Sam Adams Boston Lager",d:"Boston's own. Served ice cold throughout Fenway."},{i:"🥜",n:"Peanuts from the Vendors",d:"Bags tossed from 20 rows away — a Fenway tradition."}]},
+{id:147,abbr:"NYY",name:"New York Yankees",stadium:"Yankee Stadium",city:"Bronx, NY",div:"AL East",lg:"AL",opened:2009,cap:46537,surf:"Grass",p:"#003087",s:"#C4CED4",facts:[["Architect","Populous"],["Cost","$1.5 Billion"],["Opened","2009"],["Monument Park","Retired numbers in CF"]],dims:[["318","Left"],["399","L-Ctr"],["408","Center"],["314","Right"]],unique:["Most expensive stadium at the time","Monument Park — every retired Yankee number","Great Hall modeled on original Stadium","Hard Rock Hotel attached"],legs:[{y:"2009",t:"Championship in First Season",d:"The Yankees won the World Series in the very first season at the new Stadium."},{y:"2014",t:"Jeter's Walk-Off Farewell",d:"Jeter's final home game ended with a walk-off single."},{y:"2022",t:"Judge's 62nd Home Run",d:"Judge broke Roger Maris's AL record — the true AL home run king."}],food:[{i:"🌭",n:"Stadium Mustard Dog",d:"The Yankee dog with house yellow mustard."},{i:"🍕",n:"NY-Style Pizza",d:"Giant, properly foldable New York slices."},{i:"🥩",n:"Hard Rock Cafe",d:"Full meals attached to the stadium — unique in MLB."}]},
+{id:139,abbr:"TB",name:"Tampa Bay Rays",stadium:"Tropicana Field",city:"St. Petersburg, FL",div:"AL East",lg:"AL",opened:1990,cap:25000,surf:"Turf",p:"#092C5C",s:"#8FBCE6",facts:[["Type","Domed / Indoor"],["Catwalk","Four catwalks — in play"],["Surface","Artificial Turf"],["New Stadium","Planned for 2028"]],dims:[["315","Left"],["370","L-Ctr"],["404","Center"],["322","Right"]],unique:["Only domed stadium without a retractable roof","Four catwalks in play","Touch tank with live rays","Smallest capacity in MLB"],legs:[{y:"2008",t:"Rays Reach World Series",d:"The lowest-payroll team shocked the AL to reach the Fall Classic."},{y:"2020",t:"COVID Bubble World Series Run",d:"The Rays reached the World Series again, losing in 6 to the Dodgers."},{y:"2011",t:"Greatest Comeback Night",d:"Rallied from 7-0 down to clinch a Wild Card as Boston simultaneously collapsed."}],food:[{i:"🦈",n:"Touch Tank Tacos",d:"Fish tacos served near the famous stingray touch tank."},{i:"🌭",n:"Cuban Sandwich Dog",d:"Hot dog topped with mojo pork, Swiss, pickles, and mustard."},{i:"🍺",n:"Cigar City Brewing",d:"Tampa's legendary craft brewery pours Jai Alai IPA throughout."}]},
+{id:141,abbr:"TOR",name:"Toronto Blue Jays",stadium:"Rogers Centre",city:"Toronto, ON",div:"AL East",lg:"AL",opened:1989,cap:49286,surf:"Turf",p:"#134A8E",s:"#E8291C",facts:[["Roof","Retractable — 20 min"],["Location","Downtown Toronto, next to CN Tower"],["First Retractable","First in MLB"],["Hotel","Rooms overlook the field"]],dims:[["328","Left"],["375","L-Ctr"],["400","Center"],["328","Right"]],unique:["CN Tower looms over the stadium","Hotel rooms overlooking the field","First retractable roof dome in MLB","Only non-US team in MLB"],legs:[{y:"1992",t:"Back-to-Back World Series",d:"Only non-US team to win the World Series — twice."},{y:"1993",t:"Joe Carter Walk-Off",d:"One of the most iconic walk-off moments in baseball history."},{y:"2015",t:"Bautista's Bat Flip",d:"One of the most celebrated moments in Canadian sports history."}],food:[{i:"🍁",n:"Poutine",d:"Fries, cheese curds, brown gravy — a Canadian ballpark essential."},{i:"🥩",n:"Canadian Beef Burger",d:"Alberta beef with Canadian back bacon."},{i:"🍺",n:"Molson Canadian",d:"Canada's beer, served cold throughout Rogers Centre."}]},
+{id:145,abbr:"CWS",name:"Chicago White Sox",stadium:"Guaranteed Rate Field",city:"Chicago, IL",div:"AL Central",lg:"AL",opened:1991,cap:40615,surf:"Grass",p:"#27251F",s:"#C4CED4",facts:[["Opened","1991"],["Scoreboard","Exploding on home runs"],["Previous Names","Comiskey II, US Cellular"],["Renovation","Major updates 2001"]],dims:[["330","Left"],["375","L-Ctr"],["400","Center"],["335","Right"]],unique:["Exploding scoreboard on home runs","South Side Chicago institution","Field of Dreams throwback games","Shortest drive to downtown of Chicago parks"],legs:[{y:"2005",t:"World Series Sweep",d:"Swept the Astros for the first title since 1917."},{y:"1993",t:"Bo Jackson Returns",d:"Hit a home run in his very first at-bat back after hip surgery."},{y:"2021",t:"Field of Dreams Game",d:"Defeated the Yankees in the Iowa cornfield on a Tim Anderson walk-off."}],food:[{i:"🌭",n:"Chicago-Style Hot Dog",d:"Vienna Beef, yellow mustard, relish, tomato, pickle, sport peppers, celery salt. Never ketchup."},{i:"🥩",n:"Maxwell Street Polish",d:"Spicy grilled Polish sausage with grilled onions."},{i:"🍺",n:"Old Style Beer",d:"Chicago's classic lager poured at Sox Park since day one."}]},
+{id:114,abbr:"CLE",name:"Cleveland Guardians",stadium:"Progressive Field",city:"Cleveland, OH",div:"AL Central",lg:"AL",opened:1994,cap:34788,surf:"Grass",p:"#E31937",s:"#002B5C",facts:[["Opened","1994"],["Previous Names","Jacobs Field, Progressive Field"],["Nickname","The Jake — still used by fans"],["Sellouts","455 consecutive (1995-2001)"]],dims:[["325","Left"],["370","L-Ctr"],["405","Center"],["325","Right"]],unique:["455-game sellout streak — longest in MLB","Most intimate atmosphere in the AL","Left field District bar area","Consistently rated one of the best parks"],legs:[{y:"1995",t:"The Sellout Streak Begins",d:"Cleveland started a 455-game sellout streak — the longest in MLB history."},{y:"2016",t:"World Series Game 7",d:"The Cubs ended their 108-year drought here in extra innings."},{y:"1997",t:"Mesa's Blown Save",d:"A heartbreaking 9th-inning collapse in Game 7 gave the Marlins the title."}],food:[{i:"🌭",n:"Bertman Ball Park Mustard",d:"Cleveland's own tangy brown mustard — on everything."},{i:"🥩",n:"Polish Boy",d:"Kielbasa topped with coleslaw, fries, and BBQ sauce in a bun."},{i:"🍺",n:"Great Lakes Brewing",d:"Cleveland's premier craft brewery. Dortmunder Gold is the signature pour."}]},
+{id:116,abbr:"DET",name:"Detroit Tigers",stadium:"Comerica Park",city:"Detroit, MI",div:"AL Central",lg:"AL",opened:2000,cap:41083,surf:"Grass",p:"#0C2340",s:"#FA4616",facts:[["Opened","2000"],["Tiger Statues","Guard the main entrance"],["Ferris Wheel","Inside the park"],["Deep CF","420ft to center field"]],dims:[["345","Left"],["370","L-Ctr"],["420","Center"],["330","Right"]],unique:["Giant tiger sculptures at the gate","Carousel and Ferris wheel inside","420ft center — one of the deepest in MLB","Fireworks after every win"],legs:[{y:"2006",t:"Tigers Reach World Series",d:"After a decade of losing, the Tigers surged to the Fall Classic."},{y:"2012",t:"Cabrera's Triple Crown",d:"First Triple Crown since 1967 — anchoring an AL pennant-winning team."},{y:"1984",t:"Wire-to-Wire Champions",d:"The 84 Tigers went 35-5 to start and never looked back."}],food:[{i:"🌭",n:"Coney Island Hot Dog",d:"Natural casing frank with beanless chili, mustard, and diced onions."},{i:"🎠",n:"Comerica Carousel",d:"Ride between innings — a uniquely Detroit ballpark experience."},{i:"🍺",n:"Bell's Brewery",d:"Michigan's most celebrated craft brewery. Oberon Ale is the signature."}]},
+{id:118,abbr:"KC",name:"Kansas City Royals",stadium:"Kauffman Stadium",city:"Kansas City, MO",div:"AL Central",lg:"AL",opened:1973,cap:37903,surf:"Grass",p:"#004687",s:"#C09A5B",facts:[["Opened","1973"],["Fountains","12-acre water spectacular"],["Renovation","$250M in 2009"],["Crown Vision","One of MLB's largest boards"]],dims:[["330","Left"],["387","L-Ctr"],["410","Center"],["330","Right"]],unique:["Only baseball-only AL stadium not shared","Famous fountains in the outfield","Top-5 atmosphere in MLB","Crown Vision — one of MLB's biggest boards"],legs:[{y:"1985",t:"World Series Champions",d:"Beat the Cardinals in the World Series following the pine tar era."},{y:"2015",t:"World Series Again",d:"Defeated the Mets in 5 games in front of a delirious home crowd."},{y:"1980",t:"Brett Chases .400",d:"Brett hit .390 — closest anyone has come to .400 since Ted Williams."}],food:[{i:"🥩",n:"KC BBQ Burnt Ends",d:"Crispy caramelized brisket tips from local pitmasters."},{i:"🌽",n:"Street Corn",d:"Elote-style with mayo, cotija, chili powder, and lime."},{i:"🍺",n:"Boulevard Brewing",d:"KC's own Boulevard pours Unfiltered Wheat and Tank 7 throughout."}]},
+{id:142,abbr:"MIN",name:"Minnesota Twins",stadium:"Target Field",city:"Minneapolis, MN",div:"AL Central",lg:"AL",opened:2010,cap:38544,surf:"Grass",p:"#002B5C",s:"#D31145",facts:[["Opened","2010"],["First Outdoor","First outdoor park in Minnesota"],["Location","Downtown Minneapolis"],["Limestone","MN limestone throughout"]],dims:[["339","Left"],["377","L-Ctr"],["404","Center"],["328","Right"]],unique:["First open-air park in Minnesota","Minnesota limestone exterior","Minnie and Paul sign on home runs","Steps from Target Center and US Bank Stadium"],legs:[{y:"1991",t:"Kirby Puckett's Walk-Off",d:"Walk-off homer in Game 6 of the World Series forced a Game 7 the Twins won."},{y:"2010",t:"Opening Day",d:"After decades indoors, the Twins opened their downtown park to massive fanfare."},{y:"2023",t:"Correa Stays Home",d:"After a failed Giants medical exam, Correa re-signed in a massive hometown moment."}],food:[{i:"🍖",n:"Kramarczuk's Sausage",d:"Minneapolis's legendary Ukrainian butcher supplies handmade bratwurst."},{i:"🥧",n:"Walleye Sandwich",d:"Freshwater walleye battered and fried — unique to Target Field."},{i:"🍺",n:"Surly Brewing",d:"Minnesota's beloved craft brewery. Furious IPA is the fan favorite."}]},
+{id:117,abbr:"HOU",name:"Houston Astros",stadium:"Minute Maid Park",city:"Houston, TX",div:"AL West",lg:"AL",opened:2000,cap:41168,surf:"Grass",p:"#002D62",s:"#EB6E1F",facts:[["Roof","Retractable"],["Train","Locomotive above left field"],["Crawford Boxes","Short left porch — 315ft"],["Facade","Union Station incorporated"]],dims:[["315","Left"],["362","L-Ctr"],["435","Center"],["326","Right"]],unique:["Union Station facade integrated into the park","Vintage train celebrates home runs","Crawford Boxes — short left field porch","Most unique outfield layout in MLB"],legs:[{y:"2017",t:"World Series — Hurricane Harvey",d:"Weeks after Harvey devastated Houston, the Astros won the World Series."},{y:"2019",t:"Verlander's No-Hitter",d:"One of Verlander's three no-hitters as an Astro."},{y:"2021",t:"Correa Walk-Off ALCS",d:"Correa pointed to his watch — one of the ALCS's most memorable moments."}],food:[{i:"🌮",n:"Tex-Mex Loaded Nachos",d:"Brisket, queso, jalapenos, pico — proper Houston Tex-Mex."},{i:"🍺",n:"Saint Arnold Brewing",d:"Houston's oldest craft brewery pours throughout the park."},{i:"🥩",n:"Fajita Loaded Dog",d:"Fajita beef, peppers, onions, cheese, sour cream in a hot dog bun."}]},
+{id:108,abbr:"LAA",name:"Los Angeles Angels",stadium:"Angel Stadium",city:"Anaheim, CA",div:"AL West",lg:"AL",opened:1966,cap:45517,surf:"Grass",p:"#BA0021",s:"#003263",facts:[["Opened","1966"],["Big A","Visible from the freeway"],["2nd Oldest","Second oldest active AL stadium"],["Rock Formation","Waterfall in the outfield"]],dims:[["347","Left"],["387","L-Ctr"],["396","Center"],["350","Right"]],unique:["The Big A — visible from the I-57 freeway","Rock formation and waterfall in the outfield","Second oldest current AL stadium","Has hosted Super Bowls and Olympics"],legs:[{y:"2002",t:"World Series — Rally Monkey",d:"Down 3-2 to the Giants, won Games 6 and 7. The Rally Monkey was born."},{y:"2004",t:"Vlad Guerrero Sr. MVP",d:"Signed as a free agent and immediately won MVP in 2004."},{y:"2023",t:"Ohtani's Final Angels Season",d:"Two-way dominance before departing for the Dodgers."}],food:[{i:"🌮",n:"California Fish Tacos",d:"Baja-style with crispy fish, cabbage, pico, crema, lime."},{i:"🥤",n:"Dole Whip",d:"The iconic pineapple soft-serve — Disneyland is just a mile away."},{i:"🍺",n:"Golden Road Brewing",d:"LA's own craft brewery pours Wolf Pup IPA and Mango Cart."}]},
+{id:133,abbr:"OAK",name:"Oakland Athletics",stadium:"Sutter Health Park",city:"Sacramento, CA",div:"AL West",lg:"AL",opened:1999,cap:14014,surf:"Grass",p:"#003831",s:"#EFB21E",facts:[["Relocated","Sacramento for 2025"],["Capacity","Smallest in MLB at 14,014"],["Previous Home","Oakland Coliseum 1968-2024"],["Las Vegas","New stadium planned 2028"]],dims:[["330","Left"],["370","L-Ctr"],["400","Center"],["325","Right"]],unique:["Only team in a minor league park","Smallest capacity in MLB","Green and gold — iconic color scheme","Las Vegas stadium under construction"],legs:[{y:"2002",t:"Moneyball Season",d:"Billy Beane's analytics revolution and the 20-game winning streak changed baseball forever."},{y:"1989",t:"World Series Earthquake Game",d:"The Loma Prieta earthquake struck during Game 3 of the Bay Bridge World Series."},{y:"1972-74",t:"Three Straight Titles",d:"Charlie Finley's A's won three consecutive World Series."}],food:[{i:"🌮",n:"Sacramento Farm-to-Fork Tacos",d:"Local vendors bring Sacramento farm culture to the park."},{i:"🍺",n:"Sierra Nevada Brewing",d:"The legendary California craft brewery well represented here."},{i:"🥤",n:"Jamba Juice",d:"Fresh smoothies on hot Sacramento days."}]},
+{id:136,abbr:"SEA",name:"Seattle Mariners",stadium:"T-Mobile Park",city:"Seattle, WA",div:"AL West",lg:"AL",opened:1999,cap:47929,surf:"Grass",p:"#0C2C56",s:"#005C5C",facts:[["Roof","Retractable"],["Previous Name","Safeco Field"],["Edgar's Cantina","Named for Edgar Martinez"],["Views","Downtown Seattle skyline"]],dims:[["331","Left"],["378","L-Ctr"],["405","Center"],["326","Right"]],unique:["Retractable roof without trapping fans indoors","Edgar's Cantina honors Edgar Martinez","Ken Griffey Jr. statue outside","Rated one of MLB's best fan experiences"],legs:[{y:"1995",t:"The Double — Edgar Martinez",d:"Walk-off double in the ALDS saved baseball in Seattle."},{y:"2001",t:"116-Win Season",d:"MLB-record-tying 116 regular season wins."},{y:"2022",t:"Julio Rodriguez's Arrival",d:"J-Rod won ROY and put up a historic Home Run Derby performance."}],food:[{i:"🦀",n:"Dungeness Crab Sandwich",d:"Fresh Pacific Northwest crab on a toasted roll."},{i:"🐟",n:"Ivar's Clam Chowder",d:"Seattle's Ivar's in a sourdough bread bowl."},{i:"🍺",n:"Pike Brewing",d:"Seattle's iconic craft brewery throughout T-Mobile Park."}]},
+{id:140,abbr:"TEX",name:"Texas Rangers",stadium:"Globe Life Field",city:"Arlington, TX",div:"AL West",lg:"AL",opened:2020,cap:40518,surf:"Grass",p:"#003278",s:"#C0111F",facts:[["Opened","2020"],["Roof","Retractable"],["Cost","$1.1 Billion"],["2023 WS","Hosted the World Series"]],dims:[["329","Left"],["372","L-Ctr"],["407","Center"],["326","Right"]],unique:["Newest park in MLB with retractable roof","Climate controlled for Texas summers","Home Run Porch in right field","Hosted 2023 World Series in its 4th season"],legs:[{y:"2023",t:"World Series Champions",d:"First title ever — defeated the Arizona Diamondbacks in 5 games."},{y:"2023",t:"Corey Seager ALCS MVP",d:"One of the great individual playoff performances in recent memory."},{y:"2020",t:"Opened During COVID",d:"Full packed debut in 2021 was an emotional moment for the region."}],food:[{i:"🥩",n:"Brisket Loaded Fries",d:"Texas BBQ brisket over crispy fries with queso and jalapenos."},{i:"🌮",n:"Texas Tacos",d:"Barbacoa and carne asada with fresh tortillas and salsa verde."},{i:"🍺",n:"Shiner Bock",d:"Texas's most iconic beer, brewed since 1909."}]},
+{id:144,abbr:"ATL",name:"Atlanta Braves",stadium:"Truist Park",city:"Cumberland, GA",div:"NL East",lg:"NL",opened:2017,cap:41149,surf:"Grass",p:"#CE1141",s:"#13274F",facts:[["Opened","2017"],["The Battery","Entertainment district around the park"],["Location","Cumberland, GA"],["Cost","$622 Million"]],dims:[["335","Left"],["375","L-Ctr"],["400","Center"],["325","Right"]],unique:["The Battery Atlanta — full neighborhood surrounding the park","Chop House behind left field","One of the newest fan-friendly parks in MLB"],legs:[{y:"2021",t:"World Series Champions",d:"First title since 1995 — defeated the Astros in 6 games."},{y:"1990s",t:"The Dynasty",d:"14 consecutive division titles (1991-2005)."},{y:"2019",t:"Ronald Acuna Jr.",d:"Announced himself as the face of the franchise with a monster season."}],food:[{i:"🍑",n:"Georgia Peach Ice Cream",d:"Fresh Georgia peach soft-serve — a ballpark exclusive."},{i:"🍗",n:"Chick-fil-A",d:"The Atlanta-born chain has a dedicated location at Truist Park."},{i:"🍺",n:"SweetWater Brewing",d:"Atlanta's own SweetWater 420 pale ale poured throughout."}]},
+{id:146,abbr:"MIA",name:"Miami Marlins",stadium:"loanDepot park",city:"Miami, FL",div:"NL East",lg:"NL",opened:2012,cap:36742,surf:"Grass",p:"#00A3E0",s:"#EF3340",facts:[["Roof","Retractable"],["Art","Colorful installations throughout"],["Capacity","36,742"],["Attendance","Historically lowest in MLB"]],dims:[["344","Left"],["386","L-Ctr"],["407","Center"],["335","Right"]],unique:["Art-forward design with murals throughout","Retractable roof and full A/C","Two WS titles despite small attendance"],legs:[{y:"2003",t:"Beckett's Shutout",d:"23-year-old Beckett pitched a complete-game shutout to win the World Series."},{y:"2003",t:"Second WS Title",d:"Second title in 11 years — remarkable for a small-market franchise."},{y:"2017",t:"Jose Fernandez Legacy",d:"The team honored their fallen ace throughout the 2017 season."}],food:[{i:"🌮",n:"Cuban Sandwich",d:"Slow-roasted pork, ham, Swiss, pickles, mustard on a Cuban roll."},{i:"🍹",n:"Tropical Agua Fresca",d:"Mango, tamarind, hibiscus — Miami's Latin Caribbean roots."},{i:"🍺",n:"Wynwood Brewing",d:"Miami's beloved craft brewery from the arts district."}]},
+{id:121,abbr:"NYM",name:"New York Mets",stadium:"Citi Field",city:"Flushing, NY",div:"NL East",lg:"NL",opened:2009,cap:41922,surf:"Grass",p:"#002D72",s:"#FF5910",facts:[["Opened","2009"],["Ebbets Influence","Entrance modeled on Ebbets Field"],["JR Rotunda","Honors Jackie Robinson"],["Location","Next to 1964 World's Fair site"]],dims:[["335","Left"],["379","L-Ctr"],["408","Center"],["330","Right"]],unique:["Jackie Robinson Rotunda at the entrance","Modeled on Ebbets Field","Shea Bridge connects main levels","Manhattan skyline from upper decks"],legs:[{y:"1986",t:"The 86 Mets",d:"Won the World Series over the Red Sox in a legendary Game 6."},{y:"2015",t:"NL Pennant Run",d:"Harvey, deGrom, Syndergaard, Matz — one of the great young rotations."},{y:"2022",t:"deGrom Departs",d:"Jacob deGrom's departure after years of Cy Young dominance."}],food:[{i:"🌭",n:"Shake Shack",d:"Essentially born at Citi Field. The ShackBurger is mandatory."},{i:"🍕",n:"NY-Style Pizza",d:"Proper foldable, crispy, saucy pizza. You're in Queens."},{i:"🍺",n:"Blue Point Brewing",d:"Long Island's Blue Point Toasted Lager throughout Citi Field."}]},
+{id:143,abbr:"PHI",name:"Philadelphia Phillies",stadium:"Citizens Bank Park",city:"Philadelphia, PA",div:"NL East",lg:"NL",opened:2004,cap:42792,surf:"Grass",p:"#E81828",s:"#002D72",facts:[["Opened","2004"],["The Phanatic","Most famous mascot in sports"],["Liberty Bell","Rings on home runs"],["Atmosphere","Notoriously passionate fans"]],dims:[["329","Left"],["374","L-Ctr"],["401","Center"],["330","Right"]],unique:["Loudest fan base in the NL","Giant Liberty Bell rings on HRs","The Phanatic — most beloved mascot","Ashburn Alley named for Richie Ashburn"],legs:[{y:"2008",t:"World Series Champions",d:"Won in 5 over the Rays — Philadelphia's first major title in 25 years."},{y:"2022",t:"Trea Turner Grand Slam",d:"Turner's NLCS grand slam sent the park into a frenzy."},{y:"2009",t:"Back-to-Back Pennants",d:"Utley, Howard, Rollins, Halladay — the golden era."}],food:[{i:"🥨",n:"Philly Soft Pretzel",d:"Massive doughy pretzel with yellow mustard — a Citizens Bank staple."},{i:"🥩",n:"Cheesesteak",d:"Shaved ribeye, Cheez Whiz or provolone, on an Amoroso roll."},{i:"🍺",n:"Yards Brewing",d:"Philadelphia's own Yards Philadelphia Pale Ale throughout."}]},
+{id:120,abbr:"WSH",name:"Washington Nationals",stadium:"Nationals Park",city:"Washington, DC",div:"NL East",lg:"NL",opened:2008,cap:41313,surf:"Grass",p:"#AB0003",s:"#14225A",facts:[["Opened","2008"],["LEED","First LEED Silver MLB stadium"],["Presidents Race","Every game tradition"],["Navy Yard","Anchored neighborhood development"]],dims:[["336","Left"],["377","L-Ctr"],["402","Center"],["335","Right"]],unique:["First LEED Silver certified MLB park","Presidents Race every game","Navy Yard neighborhood grew around the park","Half Street Fairgrounds outside"],legs:[{y:"2019",t:"World Series Champions",d:"Wild card team won the franchise's first title, defeating the Astros in 7."},{y:"2019",t:"Zimmerman's Grand Slam",d:"The Original National's Game 1 grand slam set the tone."},{y:"2012",t:"Strasburg Shut Down",d:"The most debated managerial decision in recent baseball history."}],food:[{i:"🥩",n:"Ben's Chili Bowl Half-Smoke",d:"DC institution since 1958 — chili-topped half-smoke sausage."},{i:"🌭",n:"Jumbo Dogs",d:"Oversized hot dogs from local supplier."},{i:"🍺",n:"DC Brau Brewing",d:"DC's first production brewery since Prohibition."}]},
+{id:112,abbr:"CHC",name:"Chicago Cubs",stadium:"Wrigley Field",city:"Chicago, IL",div:"NL Central",lg:"NL",opened:1914,cap:41649,surf:"Grass",p:"#0E3386",s:"#CC3433",facts:[["Opened","1914"],["Second Oldest","After Fenway"],["Ivy","Planted 1937 — in play"],["Rooftops","Neighboring building bleachers"]],dims:[["355","Left"],["368","L-Ctr"],["400","Center"],["353","Right"]],unique:["Manual scoreboard since 1937","Ivy-covered walls — ball in ivy is a ground rule double","Wrigley rooftops with bleacher seating","W flag after every win"],legs:[{y:"2016",t:"The Curse Ends",d:"After 108 years, the Cubs won Game 7 in the rain. The most emotional celebration in recent sports."},{y:"1984",t:"Ryne Sandberg Game",d:"Two game-tying homers off Sutter in a national TV game."},{y:"1998",t:"Sosa's 66 Home Runs",d:"The home run race with McGwire filled Wrigley all season."}],food:[{i:"🍕",n:"Chicago Deep Dish",d:"Giordano's and Lou Malnati's supply authentic deep dish."},{i:"🌭",n:"Chicago Dog",d:"Vienna Beef, sport peppers, relish, tomato, pickle, mustard. Never ketchup."},{i:"🍺",n:"Old Style Beer",d:"Chicago's classic lager in iconic yellow cups since the 1950s."}]},
+{id:113,abbr:"CIN",name:"Cincinnati Reds",stadium:"Great American Ball Park",city:"Cincinnati, OH",div:"NL Central",lg:"NL",opened:2003,cap:42319,surf:"Grass",p:"#C6011F",s:"#000000",facts:[["Opened","2003"],["Ohio River","Views of Kentucky from upper deck"],["Oldest Team","Oldest professional baseball team"],["Rose Garden","Honors Pete Rose"]],dims:[["328","Left"],["370","L-Ctr"],["404","Center"],["325","Right"]],unique:["Ohio River and Kentucky skyline views","Pete Rose mural despite lifetime ban","Oldest continuously operating baseball team","Gap Band plays after strikeouts"],legs:[{y:"1975-76",t:"The Big Red Machine",d:"Bench, Rose, Morgan — two straight World Series titles."},{y:"1990",t:"Wire-to-Wire",d:"Led the NL wire-to-wire and swept the A's in the World Series."},{y:"1985",t:"Rose Breaks Hit Record",d:"Rose broke Ty Cobb's all-time record in Cincinnati."}],food:[{i:"🌭",n:"Cincinnati Cheese Coney",d:"Hot dog with cinnamon-spiced chili, mustard, onions, shredded cheddar."},{i:"🥧",n:"Graeter's Ice Cream",d:"Famous Black Raspberry Chocolate Chip throughout GABP."},{i:"🍺",n:"Rhinegeist Brewery",d:"Cincinnati's iconic craft brewery pours Truth IPA throughout."}]},
+{id:158,abbr:"MIL",name:"Milwaukee Brewers",stadium:"American Family Field",city:"Milwaukee, WI",div:"NL Central",lg:"NL",opened:2001,cap:41900,surf:"Grass",p:"#12284B",s:"#FFC52F",facts:[["Roof","Retractable"],["Bernie Brewer","Slides on every HR"],["Previous Name","Miller Park"],["Opened","2001"]],dims:[["344","Left"],["370","L-Ctr"],["400","Center"],["345","Right"]],unique:["Bernie Brewer slides on every home run","Retractable roof for Wisconsin weather","Sausage Race every game","Best tailgating atmosphere in sports"],legs:[{y:"1982",t:"Robin Yount's MVP",d:"Led the Brewers to their only World Series appearance."},{y:"2018",t:"Yelich's MVP",d:"Back-to-back MVP campaigns — the face of the franchise."},{y:"2011",t:"Ryan Braun's MVP",d:"Most successful modern era for the Brewers."}],food:[{i:"🌭",n:"Tailgate Bratwurst",d:"Beer-boiled brat with Stadium Sauce. The definitive Midwest ballpark food."},{i:"🍺",n:"Miller Lite / Leinenkugel's",d:"Milwaukee's own Miller and Wisconsin's Leine's poured throughout."}]},
+{id:134,abbr:"PIT",name:"Pittsburgh Pirates",stadium:"PNC Park",city:"Pittsburgh, PA",div:"NL Central",lg:"NL",opened:2001,cap:38362,surf:"Grass",p:"#FDB827",s:"#27251F",facts:[["Opened","2001"],["Views","Most scenic park in MLB"],["Clemente Bridge","Leads directly to the park"],["Skyline","Pittsburgh skyline from every seat"]],dims:[["325","Left"],["389","L-Ctr"],["399","Center"],["320","Right"]],unique:["Most beautiful stadium in baseball","Roberto Clemente Bridge — pedestrian-only on game days","Pittsburgh skyline and three rivers visible","Most intimate atmosphere in MLB"],legs:[{y:"2013",t:"Wild Card Walk-Off",d:"After 20 losing seasons, the Pirates ended the drought here."},{y:"1971",t:"Roberto Clemente",d:"Clemente's bridge and retired No. 21 represent Pittsburgh's soul."},{y:"1960",t:"Mazeroski's Walk-Off",d:"Maz's Game 7 walk-off homer — every Pittsburgh fan knows it by heart."}],food:[{i:"🥪",n:"Primanti Brothers",d:"Grilled meat, coleslaw, and french fries ALL inside the sandwich — a Pittsburgh staple since 1933."},{i:"🥧",n:"Klondike Bars",d:"Invented in Pittsburgh — served throughout PNC Park."},{i:"🍺",n:"Penn Brewing",d:"Pittsburgh's oldest craft brewery pours Steel City Hazy throughout PNC."}]},
+{id:138,abbr:"STL",name:"St. Louis Cardinals",stadium:"Busch Stadium",city:"St. Louis, MO",div:"NL Central",lg:"NL",opened:2006,cap:44494,surf:"Grass",p:"#C41E3A",s:"#FEDB00",facts:[["Opened","2006"],["Gateway Arch","Views from upper deck"],["11 Titles","Most WS titles in NL history"],["Cardinal Nation","Most devoted fan base"]],dims:[["336","Left"],["375","L-Ctr"],["400","Center"],["335","Right"]],unique:["Gateway Arch visible from upper deck","11 World Series titles — most in NL history","Cardinals Nation — most knowledgeable fans","Stan Musial statue outside"],legs:[{y:"2011",t:"David Freese Walk-Off",d:"Two-out tying triple and walk-off homer in extras — greatest WS Game 6 ever."},{y:"2006",t:"First Year in New Busch",d:"Won the World Series in year one of the new stadium."},{y:"2001-04",t:"Pujols Dynasty Years",d:"Arguably the greatest start to a career in baseball history."}],food:[{i:"🌭",n:"St. Louis Dog",d:"Natural casing dog with Stadium Mustard and Provel cheese."},{i:"🥧",n:"Imo's Pizza",d:"Thin-crust, square-cut pizza with Provel cheese — uniquely St. Louis."},{i:"🍺",n:"Budweiser",d:"Anheuser-Busch is headquartered in St. Louis. Bud flows freely at Busch."}]},
+{id:109,abbr:"ARI",name:"Arizona Diamondbacks",stadium:"Chase Field",city:"Phoenix, AZ",div:"NL West",lg:"NL",opened:1998,cap:48519,surf:"Grass",p:"#A71930",s:"#E3D4AD",facts:[["Roof","Retractable — 5 min"],["A/C","Only MLB park with on-field A/C"],["Opened","1998"],["Cost","$354 Million"]],dims:[["328","Left"],["376","L-Ctr"],["407","Center"],["335","Right"]],unique:["Only MLB park with on-field A/C","Retractable roof closes in 5 min","Swimming pool beyond right-center","Opened same year as the franchise"],legs:[{y:"2001",t:"Game 7 — Greatest World Series",d:"Down 2-1 against Rivera, Gonzalez hit a walk-off single. RJ and Schilling shared MVP."},{y:"2004",t:"Randy Johnson's Perfect Game",d:"Age 40 — oldest pitcher ever to throw a perfect game."},{y:"2023",t:"NL Pennant Run",d:"Stormed through the postseason as a wildcard to reach the World Series."}],food:[{i:"🌮",n:"Arizona Sonoran Hot Dog",d:"Bacon-wrapped in a bolillo bun, pinto beans, tomato, onion, mayo, jalapeno."},{i:"🏊",n:"Pool Suite",d:"Group rental — watch home runs land in the pool."},{i:"🍺",n:"Four Peaks Brewing",d:"Arizona's iconic craft brewery pours Kilt Lifter throughout the park."}]},
+{id:115,abbr:"COL",name:"Colorado Rockies",stadium:"Coors Field",city:"Denver, CO",div:"NL West",lg:"NL",opened:1995,cap:46897,surf:"Grass",p:"#33006F",s:"#C4CED4",facts:[["Elevation","5,280 feet above sea level"],["Humidor","Controls ball humidity at altitude"],["Opened","1995"],["LoDo","Anchors Denver's Lower Downtown"]],dims:[["347","Left"],["390","L-Ctr"],["415","Center"],["350","Right"]],unique:["Mile High altitude — balls fly 9% farther","Humidor for altitude control","Rockpile — $4 bleacher section","LoDo neighborhood grew around Coors Field"],legs:[{y:"1995",t:"Larry Walker's MVP Seasons",d:"Walker's elite hitting at altitude made him one of the most feared hitters of the era."},{y:"2007",t:"Rockies Rockies Rockies",d:"Won 21 of 22 games to sneak in, then swept their way to the World Series."},{y:"1998",t:"Home Run Chase at Altitude",d:"The altitude made Coors the most dramatic stage for the McGwire-Sosa chase."}],food:[{i:"🥩",n:"Rocky Mountain Oysters",d:"Fried bull testicles with cocktail sauce — a Coors Field tradition for the adventurous."},{i:"🍔",n:"Bison Burger",d:"Lean bison patty with local green chilies, pepper jack, aioli."},{i:"🍺",n:"Coors / Oskar Blues",d:"Coors was born in Golden, CO. Oskar Blues pours Dale's Pale Ale throughout."}]},
+{id:119,abbr:"LAD",name:"Los Angeles Dodgers",stadium:"Dodger Stadium",city:"Los Angeles, CA",div:"NL West",lg:"NL",opened:1962,cap:56000,surf:"Grass",p:"#005A9C",s:"#EF3E42",facts:[["Opened","1962"],["Third Oldest","After Fenway and Wrigley"],["Largest","56,000 — largest in MLB"],["Views","San Gabriel Mountains on clear days"]],dims:[["330","Left"],["375","L-Ctr"],["395","Center"],["330","Right"]],unique:["Largest capacity in MLB — 56,000","Vin Scully Press Box","San Gabriel Mountains beyond the outfield","Third oldest active MLB park"],legs:[{y:"1988",t:"Kirk Gibson's Walk-Off",d:"Hobbled on two bad legs, Gibson hit a walk-off homer off Eckersley — the most iconic Dodger moment ever."},{y:"2020",t:"World Series",d:"First title in 32 years, defeating the Rays in the COVID bubble."},{y:"1965",t:"Koufax's Perfect Game",d:"Part of one of the most dominant three-season stretches a pitcher has ever had."}],food:[{i:"🌭",n:"Dodger Dog",d:"The most famous ballpark hot dog — 10 inches, all-beef. 2M+ sold each season."},{i:"🍜",n:"Kogi Korean BBQ",d:"Roy Choi's Korean fusion — kalbi tacos and kimchi quesadillas."},{i:"🍺",n:"Golden Road Brewing",d:"LA's own craft brewery — Wolf Pup IPA and Mango Cart throughout."}]},
+{id:135,abbr:"SD",name:"San Diego Padres",stadium:"Petco Park",city:"San Diego, CA",div:"NL West",lg:"NL",opened:2004,cap:40162,surf:"Grass",p:"#2F241D",s:"#FEC325",facts:[["Opened","2004"],["Western Metal Supply","1909 building in left field"],["Views","Skyline and bay from upper deck"],["Park at the Park","Grassy lawn beyond CF"]],dims:[["336","Left"],["367","L-Ctr"],["396","Center"],["322","Right"]],unique:["Western Metal Supply Co. (1909) in left field corner","Park at the Park — grassy lawn seating","San Diego skyline and Coronado Bridge views","Gaslamp Quarter steps away"],legs:[{y:"1998",t:"Tony Gwynn",d:".394 in 94 — Gwynn's Hall of Fame career is the soul of Padres baseball."},{y:"2022",t:"Juan Soto Trade",d:"Blockbuster acquisition pushed the Padres to the NLCS."},{y:"1984",t:"First Pennant",d:"Steve Garvey's walk-off homer in the NLCS."}],food:[{i:"🌮",n:"Carne Asada Fries",d:"A San Diego invention — loaded fries with carne asada, guac, sour cream, pico."},{i:"🐟",n:"Baja Fish Tacos",d:"Authentic Baja-style with beer-battered fish, cabbage, crema."},{i:"🍺",n:"Stone Brewing",d:"San Diego's iconic craft brewery — Arrogant Bastard Ale throughout Petco."}]},
+{id:137,abbr:"SF",name:"San Francisco Giants",stadium:"Oracle Park",city:"San Francisco, CA",div:"NL West",lg:"NL",opened:2000,cap:41915,surf:"Grass",p:"#FD5A1E",s:"#27251F",facts:[["Opened","2000"],["McCovey Cove","Bay beyond right field"],["Splash Hits","HRs into the Bay"],["Self-Funded","Built with private money only"]],dims:[["339","Left"],["364","L-Ctr"],["399","Center"],["309","Right"]],unique:["McCovey Cove — kayakers wait for Splash Hits","Only privately funded modern MLB park","Bay Bridge visible from every angle","Right field only 309ft — shortest in NL West"],legs:[{y:"2010",t:"First of Three WS Titles",d:"Won in 2010, 2012, and 2014 — one of baseball's great modern dynasties."},{y:"2001",t:"Bonds' 73 Home Runs",d:"The single-season record. Oracle was electric all season."},{y:"2014",t:"MadBum's World Series",d:"Complete-game shutout and 5-inning save in Game 7 against the Royals."}],food:[{i:"🦀",n:"Dungeness Crab Sandwich",d:"Fresh Pacific crab on sourdough — a San Francisco institution."},{i:"🍕",n:"Gilroy Garlic Fries",d:"Fresh-minced garlic and parsley over crispy fries — the Oracle Park original."},{i:"🍺",n:"Anchor Steam Beer",d:"America's original craft beer — on tap throughout Oracle Park."}]}
+];
+
+const DIVS=["AL East","AL Central","AL West","NL East","NL Central","NL West"];
+const CATS=["Overall Experience","Food & Drinks","Atmosphere","Seats & Sightlines","Value for Money"];
+let cur=null,gLoaded=false,rankSort="rating";
+
+function espn(abbr){return abbr.toLowerCase().replace("cws","chw");}
+
+// ── STORAGE ──
+function getRatings(abbr){try{return JSON.parse(localStorage.getItem("bi_r_"+abbr)||"null");}catch(e){return null;}}
+function saveVote(abbr,scores){
+  let d=getRatings(abbr)||{count:0,totals:[0,0,0,0,0]};
+  d.count++;scores.forEach((s,i)=>d.totals[i]+=s);
+  localStorage.setItem("bi_r_"+abbr,JSON.stringify(d));
+}
+function hasVoted(abbr){return !!localStorage.getItem("bi_v_"+abbr);}
+function markVoted(abbr){localStorage.setItem("bi_v_"+abbr,"1");}
+function getAvg(abbr){
+  const d=getRatings(abbr);
+  if(!d||!d.count)return null;
+  return{count:d.count,avgs:d.totals.map(t=>Math.round(t/d.count*10)/10),overall:Math.round(d.totals.reduce((a,b)=>a+b,0)/(d.count*d.totals.length)*10)/10};
+}
+function getReviews(abbr){try{return JSON.parse(localStorage.getItem("bi_rv_"+abbr)||"[]");}catch(e){return[];}}
+function getVisited(){try{return JSON.parse(localStorage.getItem("bi_vis")||"[]");}catch(e){return[];}}
+function toggleVis(abbr){
+  let v=getVisited();
+  v.includes(abbr)?v=v.filter(a=>a!==abbr):v.push(abbr);
+  localStorage.setItem("bi_vis",JSON.stringify(v));
+  renderVisited();
+}
+
+// ── PAGE NAV ──
+function showPage(p){
+  ["home","rankings-page","compare-page","visited-page","sp"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.style.display="none";
+  });
+  document.querySelectorAll(".nav-links a").forEach(a=>a.classList.remove("active"));
+  if(p==="home"){document.getElementById("home").style.display="block";document.getElementById("nav-home").classList.add("active");}
+  else if(p==="rankings"){document.getElementById("rankings-page").style.display="block";document.getElementById("nav-rankings").classList.add("active");renderRankings();}
+  else if(p==="compare"){document.getElementById("compare-page").style.display="block";document.getElementById("nav-compare").classList.add("active");buildCmpSelects();}
+  else if(p==="visited"){document.getElementById("visited-page").style.display="block";document.getElementById("nav-visited").classList.add("active");renderVisited();}
+  else if(p==="sp"){document.getElementById("sp").style.display="block";}
+  window.scrollTo(0,0);
+}
+
+// ── HOME ──
+function buildHome(q){
+  const f=(q||"").toLowerCase();
+  let h="";
+  DIVS.forEach(div=>{
+    const teams=TEAMS.filter(t=>t.div===div&&(!f||t.name.toLowerCase().includes(f)||t.abbr.toLowerCase().includes(f)||t.stadium.toLowerCase().includes(f)));
+    if(!teams.length)return;
+    h+=`<div><div class="div-head"><h2>${div}</h2><div class="div-line"></div></div><div class="grid">`;
+    teams.forEach(t=>{
+      h+=`<div class="tcard" style="border-color:${t.p}44" onmouseover="this.style.borderColor='${t.p}'" onmouseout="this.style.borderColor='${t.p}44'" onclick="openModal(${t.id})">
+        <div class="lg-badge">${t.lg}</div>
+        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/${espn(t.abbr)}.png" alt="${t.abbr}" onerror="this.style.display='none'">
+        <div class="card-abbr" style="color:${t.p}">${t.abbr}</div>
+        <div class="tname">${t.name}</div>
+        <div class="tstadium">${t.stadium}</div>
+      </div>`;
+    });
+    h+="</div></div>";
+  });
+  document.getElementById("divs").innerHTML=h;
+}
+document.getElementById("srch").addEventListener("input",e=>buildHome(e.target.value));
+
+// ── MODAL ──
+function openModal(id){
+  const t=TEAMS.find(x=>x.id===id);if(!t)return;cur=t;
+  document.getElementById("ma").textContent=t.abbr;
+  document.getElementById("ma").style.color=t.p;
+  document.getElementById("mt").textContent=t.name;
+  document.getElementById("ms").textContent=t.stadium;
+  document.getElementById("ml").textContent="📍 "+t.city+"  ·  "+t.div;
+  document.getElementById("mf").innerHTML=[["Opened",t.opened],["Capacity",t.cap.toLocaleString()],["Surface",t.surf],["Division",t.div]]
+    .map(([l,v])=>`<div class="mf"><div class="mf-l">${l}</div><div class="mf-v">${v}</div></div>`).join("");
+  const eb=document.getElementById("meb");
+  eb.style.border="1px solid "+t.p+"66";eb.style.color=t.p;
+  eb.onclick=()=>{closeModal();openSP(t.id);};
+  document.getElementById("ov").classList.add("open");
+}
+function closeModal(){document.getElementById("ov").classList.remove("open");}
+document.getElementById("ov").addEventListener("click",e=>{if(e.target.id==="ov")closeModal();});
+
+// ── STADIUM PAGE ──
+function setTheme(t){
+  const accent=t.p;
+  const el=document.getElementById("sp");
+  const vars={
+    "--sb":"#0f0e0c","--sbd":"#0a0908",
+    "--shb":"linear-gradient(135deg,"+t.p+"35 0%,#0f0e0c 55%)",
+    "--st":"#e8e0d0","--sh":"#f5efe0","--sm":"rgba(232,224,208,0.42)",
+    "--sa":accent,"--sas":accent+"22","--sab":accent+"38",
+    "--sc":"rgba(232,220,180,0.04)","--sbr":"rgba(232,220,180,0.09)","--sbt":"#0f0e0c"
+  };
+  Object.entries(vars).forEach(([k,v])=>el.style.setProperty(k,v));
+  el.style.background="var(--sb)";el.style.color="var(--st)";
+}
+
+function openSP(id){
+  const t=TEAMS.find(x=>x.id===id);if(!t)return;cur=t;gLoaded=false;
+  setTheme(t);
+  document.getElementById("spa").textContent=t.abbr;
+  document.getElementById("spn").textContent=t.name;
+  document.getElementById("sps").textContent=t.stadium;
+  document.getElementById("spl").textContent="📍 "+t.city+"  ·  "+t.div;
+  document.getElementById("spo").textContent=t.opened;
+  document.getElementById("spc").textContent=t.cap.toLocaleString();
+  document.getElementById("spsu").textContent=t.surf;
+  const r=getAvg(t.abbr);
+  document.getElementById("spr").textContent=r?r.overall.toFixed(1)+" / 10":"N/A";
+  document.getElementById("sp-facts").innerHTML=t.facts.map(([l,v])=>`<div class="sp-fc"><div class="sp-fl">${l}</div><div class="sp-fv">${v}</div></div>`).join("");
+  document.getElementById("sp-dims").innerHTML=t.dims.map(([n,l])=>`<div class="dim"><div class="dn">${n}</div><div class="dl">${l}</div></div>`).join("");
+  document.getElementById("sp-tags").innerHTML=t.unique.map(u=>`<div class="tag">${u}</div>`).join("");
+  document.getElementById("sp-legs").innerHTML=t.legs.map(lg=>`<div class="lc"><div class="ly">${lg.y}</div><div class="lt">${lg.t}</div><div class="ld">${lg.d}</div></div>`).join("");
+  document.getElementById("sp-food").innerHTML=t.food.map(f=>`<div class="fc"><div class="fi">${f.i}</div><div><div class="fn">${f.n}</div><div class="fd">${f.d}</div></div></div>`).join("");
+  renderRatingsPanel();
+  renderReviewsPanel();
+  sTab("t-ov",document.querySelector("#sp-tabs-row .sp-tab"));
+  showPage("sp");
+}
+
+function sTab(id,el){
+  document.querySelectorAll("#sp .sp-panel").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll("#sp-tabs-row .sp-tab").forEach(t=>t.classList.remove("active"));
+  const panel=document.getElementById(id);
+  if(panel)panel.classList.add("active");
+  if(el)el.classList.add("active");
+  if(id==="t-gm"&&!gLoaded)loadGames();
+}
+
+// ── GAMES ──
+async function loadGames(){
+  if(!cur)return;
+  const list=document.getElementById("sp-games");
+  list.innerHTML="<div style='font-size:.82rem;padding:.8rem 0;color:var(--sm)'>Loading schedule...</div>";
+  try{
+    const res=await fetch("https://statsapi.mlb.com/api/v1/schedule?teamId="+cur.id+"&season=2026&gameType=R&sportId=1&startDate=2026-05-14&endDate=2026-06-30");
+    const data=await res.json();
+    const dates=data.dates||[];
+    if(!dates.length){list.innerHTML="<div style='font-size:.82rem;padding:.8rem 0;color:var(--sm)'>No upcoming games found.</div>";return;}
+    let h="";
+    dates.slice(0,12).forEach(d=>d.games.forEach(g=>{
+      const ih=g.teams.home.team.id===cur.id;
+      const tm=g.gameDate?new Date(g.gameDate).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZoneName:"short"}):"TBD";
+      h+=`<div class="gr"><div class="gd">${d.date}</div><div class="gm">${g.teams.away.team.name} @ ${g.teams.home.team.name}</div><div class="gt">${tm}</div><div class="gp ${ih?"gph":"gpa"}">${ih?"Home":"Away"}</div></div>`;
+    }));
+    list.innerHTML=h;gLoaded=true;
+  }catch(e){list.innerHTML="<div style='font-size:.82rem;padding:.8rem 0;color:var(--sm)'>Could not load schedule.</div>";}
+}
+
+// ── RATINGS ──
+function renderRatingsPanel(){
+  if(!cur)return;
+  const r=getAvg(cur.abbr);
+  const voted=hasVoted(cur.abbr);
+  const scoreEl=document.getElementById("spr");
+  if(scoreEl)scoreEl.textContent=r?r.overall.toFixed(1)+" / 10":"N/A";
+  const rb=document.getElementById("rt-score");
+  const rc=document.getElementById("rt-count");
+  const bars=document.getElementById("rt-bars");
+  const varea=document.getElementById("rt-vote-area");
+  if(!rb)return;
+  if(!r){
+    rb.textContent="N/A";rb.style.fontSize="3rem";
+    rc.textContent="No ratings yet — be the first!";
+    bars.innerHTML=CATS.map(l=>`<div class="rr"><div class="rl">${l}</div><div class="rbg"><div class="rbf" style="width:0%"></div></div><div class="rv-num">—</div></div>`).join("");
+  }else{
+    rb.textContent=r.overall.toFixed(1);rb.style.fontSize="5rem";
+    rc.textContent="out of 10 · "+r.count+(r.count===1?" rating":" ratings");
+    bars.innerHTML=CATS.map((l,i)=>`<div class="rr"><div class="rl">${l}</div><div class="rbg"><div class="rbf" style="width:${Math.round(r.avgs[i]*10)}%"></div></div><div class="rv-num">${r.avgs[i].toFixed(1)}</div></div>`).join("");
+  }
+  if(voted){
+    varea.innerHTML="<div class='vmsg' style='display:block'>You have already rated this stadium.</div>";
+  }else{
+    varea.innerHTML=`<div class="vote-form">
+      <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--sh);font-weight:700;font-style:italic;margin-bottom:1.2rem">Rate This Stadium</div>
+      ${CATS.map((cat,i)=>`<div style="margin-bottom:1.2rem">
+        <div style="font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--sm);margin-bottom:0.5rem;font-family:monospace">${cat}</div>
+        <div class="score-btns">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button class="score-btn" data-cat="${i}" data-val="${n}" onclick="selectScore(${i},${n},this)">${n}</button>`).join("")}</div>
+      </div>`).join("")}
+      <button class="vbtn" onclick="submitVote()">Submit Rating</button>
+      <div class="vmsg" id="vote-msg">Thanks for rating!</div>
+    </div>`;
+  }
+}
+
+function selectScore(catIdx,val,btn){
+  document.querySelectorAll(".score-btn[data-cat='"+catIdx+"']").forEach(b=>b.classList.remove("sel"));
+  btn.classList.add("sel");
+}
+
+function submitVote(){
+  const scores=[];
+  for(let i=0;i<CATS.length;i++){
+    const sel=document.querySelector(".score-btn[data-cat='"+i+"'].sel");
+    if(!sel){alert("Please rate all 5 categories.");return;}
+    scores.push(parseInt(sel.dataset.val));
+  }
+  saveVote(cur.abbr,scores);markVoted(cur.abbr);
+  renderRatingsPanel();
+  document.getElementById("spr").textContent=getAvg(cur.abbr).overall.toFixed(1)+" / 10";
+}
+
+// ── REVIEWS ──
+function renderReviewsPanel(){
+  if(!cur)return;
+  const reviews=getReviews(cur.abbr);
+  const list=document.getElementById("rv-list");
+  const form=document.getElementById("rv-form-area");
+  if(!list||!form)return;
+  list.innerHTML=reviews.length?reviews.slice().reverse().map(rv=>`<div class="rv-item"><div style="display:flex;align-items:center;gap:0.8rem"><div class="rv-score">${rv.score}/10</div><div class="rv-date">${rv.date}</div></div><div class="rv-text">${rv.text}</div></div>`).join(""):"<div style='font-size:0.82rem;color:var(--sm)'>No reviews yet. Be the first!</div>";
+  form.innerHTML=`<div style="background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.5rem">
+    <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--sh);font-weight:700;font-style:italic;margin-bottom:0.8rem">Leave a Review</div>
+    <div style="font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--sm);margin-bottom:0.5rem;font-family:monospace">Your score</div>
+    <div class="score-btns" id="rv-btns">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button class="score-btn" data-rv="${n}" onclick="selectRvScore(${n},this)">${n}</button>`).join("")}</div>
+    <textarea class="rv-textarea" id="rv-text" placeholder="Share your experience at this stadium..."></textarea>
+    <button class="vbtn" onclick="submitReview()" style="margin-top:0.8rem">Post Review</button>
+    <div class="vmsg" id="rv-msg">Review posted!</div>
+  </div>`;
+}
+
+function selectRvScore(n,btn){
+  document.querySelectorAll("#rv-btns .score-btn").forEach(b=>b.classList.remove("sel"));
+  btn.classList.add("sel");
+}
+
+function submitReview(){
+  const sel=document.querySelector("#rv-btns .score-btn.sel");
+  const text=document.getElementById("rv-text").value.trim();
+  if(!sel){alert("Please select a score.");return;}
+  if(!text){alert("Please write something.");return;}
+  const reviews=getReviews(cur.abbr);
+  reviews.push({score:parseInt(sel.dataset.rv),text,date:new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})});
+  localStorage.setItem("bi_rv_"+cur.abbr,JSON.stringify(reviews));
+  document.getElementById("rv-text").value="";
+  const msg=document.getElementById("rv-msg");
+  msg.style.display="block";setTimeout(()=>msg.style.display="none",2500);
+  renderReviewsPanel();
+}
+
+// ── RANKINGS ──
+function setRankSort(s,btn){
+  rankSort=s;
+  document.querySelectorAll(".rank-filter").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  renderRankings();
+}
+function renderRankings(){
+  const sorted=[...TEAMS].sort((a,b)=>{
+    if(rankSort==="rating"){const ra=getAvg(a.abbr),rb=getAvg(b.abbr);return(rb?rb.overall:0)-(ra?ra.overall:0);}
+    if(rankSort==="cap")return b.cap-a.cap;
+    if(rankSort==="oldest")return a.opened-b.opened;
+    if(rankSort==="newest")return b.opened-a.opened;
+    if(rankSort==="name")return a.name.localeCompare(b.name);
+    if(rankSort==="div")return(a.div+a.name).localeCompare(b.div+b.name);
+    return 0;
+  });
+  document.getElementById("rank-list").innerHTML=sorted.map((t,i)=>{
+    const r=getAvg(t.abbr);
+    let val,sub;
+    if(rankSort==="rating"){val=r?r.overall.toFixed(1):"N/A";sub="fan rating";}
+    else if(rankSort==="cap"){val=t.cap.toLocaleString();sub="capacity";}
+    else if(rankSort==="oldest"||rankSort==="newest"){val=t.opened;sub="year opened";}
+    else{val=t.abbr;sub=t.div;}
+    return`<div class="rank-row" onclick="openSP(${t.id})">
+      <div class="rank-num">${i+1}</div>
+      <img class="rank-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/${espn(t.abbr)}.png" alt="${t.abbr}" onerror="this.style.display='none'">
+      <div><div class="rank-name">${t.name}</div><div class="rank-stadium">${t.stadium}</div></div>
+      <div style="text-align:right;margin-left:auto"><div class="rank-val" style="color:${t.p}">${val}</div><div class="rank-sub">${sub}</div></div>
+    </div>`;
+  }).join("");
+}
+
+// ── COMPARE ──
+function buildCmpSelects(){
+  const opts=TEAMS.map(t=>`<option value="${t.id}">${t.name} — ${t.stadium}</option>`).join("");
+  const a=document.getElementById("cmp-a"),b=document.getElementById("cmp-b");
+  if(!a.innerHTML){a.innerHTML=opts;b.innerHTML=opts;b.selectedIndex=1;}
+  renderCompare();
+}
+function renderCompare(){
+  const ta=TEAMS.find(t=>t.id===parseInt(document.getElementById("cmp-a").value));
+  const tb=TEAMS.find(t=>t.id===parseInt(document.getElementById("cmp-b").value));
+  if(!ta||!tb)return;
+  const ra=getAvg(ta.abbr),rb=getAvg(tb.abbr);
+  const rows=[
+    ["Opened",ta.opened,tb.opened,false,ta.opened<tb.opened,tb.opened<ta.opened],
+    ["Capacity",ta.cap.toLocaleString(),tb.cap.toLocaleString(),false,ta.cap>tb.cap,tb.cap>ta.cap],
+    ["Surface",ta.surf,tb.surf,true,false,false],
+    ["Division",ta.div,tb.div,true,false,false],
+    ["Fan Rating",ra?ra.overall.toFixed(1):"N/A",rb?rb.overall.toFixed(1):"N/A",false,ra&&rb&&ra.overall>rb.overall,ra&&rb&&rb.overall>ra.overall],
+    ["LF Line",ta.dims[0][0]+"ft",tb.dims[0][0]+"ft",true,false,false],
+    ["Center",ta.dims[2][0]+"ft",tb.dims[2][0]+"ft",true,false,false],
+    ["RF Line",ta.dims[3][0]+"ft",tb.dims[3][0]+"ft",true,false,false],
+  ];
+  document.getElementById("cmp-result").innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-bottom:1rem">
+      <div style="background:#141210;padding:1.5rem;display:flex;align-items:center;gap:1rem;border:1px solid rgba(232,220,180,0.09)">
+        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/${espn(ta.abbr)}.png" style="width:44px;height:44px;object-fit:contain" onerror="this.style.display='none'">
+        <div><div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:#f0ead8;font-weight:900">${ta.name}</div><div style="font-size:0.65rem;color:rgba(232,224,208,0.35);font-family:monospace">${ta.stadium}</div></div>
+      </div>
+      <div style="background:#141210;padding:1.5rem;display:flex;align-items:center;gap:1rem;border:1px solid rgba(232,220,180,0.09)">
+        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/${espn(tb.abbr)}.png" style="width:44px;height:44px;object-fit:contain" onerror="this.style.display='none'">
+        <div><div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:#f0ead8;font-weight:900">${tb.name}</div><div style="font-size:0.65rem;color:rgba(232,224,208,0.35);font-family:monospace">${tb.stadium}</div></div>
+      </div>
+    </div>
+    <div style="border:1px solid rgba(232,220,180,0.09);border-radius:2px;overflow:hidden">
+      ${rows.map(([lbl,av,bv,neutral,aw,bw])=>`<div class="cmp-row">
+        <div class="cmp-cell" style="border-right:1px solid rgba(232,220,180,0.06)"><div class="cmp-lbl">${lbl}</div><div class="cmp-val ${aw?"cmp-win":""}">${av}</div></div>
+        <div class="cmp-cell"><div class="cmp-lbl">${lbl}</div><div class="cmp-val ${bw?"cmp-win":""}">${bv}</div></div>
+      </div>`).join("")}
+    </div>
+    <div style="margin-top:0.8rem;font-size:0.65rem;color:rgba(232,224,208,0.25);font-family:monospace">Gold values indicate the winner for that stat.</div>`;
+}
+
+// ── VISITED ──
+function renderVisited(){
+  const v=getVisited();
+  document.getElementById("vis-sub").textContent=v.length===0?"Track every ballpark you have visited.":v.length+" of 30 parks visited";
+  document.getElementById("vis-grid").innerHTML=TEAMS.map(t=>`
+    <div class="vis-card ${v.includes(t.abbr)?"been":""}" onclick="toggleVis('${t.abbr}')">
+      <div class="vis-check">✓</div>
+      <img src="https://a.espncdn.com/i/teamlogos/mlb/500/${espn(t.abbr)}.png" style="width:38px;height:38px;object-fit:contain" onerror="this.style.display='none'">
+      <div style="font-family:'Playfair Display',serif;font-size:0.95rem;font-weight:700;color:${t.p}">${t.abbr}</div>
+      <div style="font-size:0.58rem;color:rgba(232,224,208,0.35);text-align:center;line-height:1.3;font-family:monospace">${t.stadium}</div>
+    </div>`).join("");
+}
+
+showPage("home");
+buildHome();
+</script>
+</body>
+</html>

@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CFB — Stadium Index</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0908;font-family:"DM Sans",sans-serif;color:#e8e0d0;min-height:100vh}
+#home{display:block}#sp{display:none}#rankings-page{display:none}#compare-page{display:none}#visited-page{display:none}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 2rem;border-bottom:1px solid rgba(255,255,255,0.07);background:#0a0908;position:sticky;top:0;z-index:50}
+.nav-logo{font-family:"Playfair Display",serif;font-size:1.2rem;color:#e8e0d0;font-style:italic}
+.nav-logo span{color:#e8d080}
+.nav-right{display:flex;align-items:center;gap:2rem}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{color:rgba(232,224,208,0.4);text-decoration:none;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;transition:color 0.2s;font-weight:500;cursor:pointer}
+.nav-links a:hover,.nav-links a.active{color:#e8d080}
+.nav-back{font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(232,224,208,0.3);text-decoration:none;font-family:"DM Mono",monospace}
+.nav-back:hover{color:#e8d080}
+.hero{padding:3rem 2.5rem 2.5rem;border-bottom:1px solid rgba(255,255,255,0.06)}
+.hero-eye{font-size:0.65rem;letter-spacing:0.25em;text-transform:uppercase;color:#e8d080;margin-bottom:0.8rem;font-family:"DM Mono",monospace}
+.hero-title{font-family:"Playfair Display",serif;font-size:clamp(2.5rem,5vw,4rem);color:#f0ead8;line-height:1;margin-bottom:0.8rem;font-weight:900}
+.hero-title em{color:#e8d080;font-style:italic}
+.hero-sub{font-size:0.88rem;color:rgba(232,224,208,0.4);line-height:1.7;max-width:480px;margin-bottom:1.8rem}
+.search-box{max-width:380px;background:rgba(232,220,180,0.05);border:1px solid rgba(232,220,180,0.15);border-radius:2px;display:flex;align-items:center;padding:0 1rem}
+.search-box input{flex:1;background:none;border:none;outline:none;color:#e8e0d0;font-family:"DM Sans",sans-serif;font-size:0.84rem;padding:0.75rem 0.4rem}
+.search-box input::placeholder{color:rgba(232,224,208,0.22)}
+.content{padding:0 2.5rem 3rem}
+.div-head{display:flex;align-items:center;gap:1rem;padding:2rem 0 1rem}
+.div-head h2{font-family:"DM Mono",monospace;font-size:0.7rem;letter-spacing:0.2em;color:rgba(232,220,180,0.3);white-space:nowrap;text-transform:uppercase}
+.div-line{flex:1;height:1px;background:rgba(232,220,180,0.08)}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.tcard{background:rgba(232,220,180,0.03);border-radius:3px;padding:1rem 0.7rem 0.85rem;display:flex;flex-direction:column;align-items:center;gap:0.35rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(232,220,180,0.07);position:relative}
+.tcard:hover{background:rgba(232,220,180,0.07);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.4)}
+.conf-badge{position:absolute;top:5px;right:6px;font-size:0.48rem;letter-spacing:0.08em;color:rgba(232,220,180,0.22);font-family:"DM Mono",monospace}
+.tcard img{width:40px;height:40px;object-fit:contain}
+.card-abbr{font-family:"Playfair Display",serif;font-size:0.9rem;font-weight:700;text-align:center;line-height:1.2}
+.tname{font-size:0.58rem;color:rgba(232,224,208,0.38);text-align:center;line-height:1.25}
+.tstadium{font-size:0.5rem;color:rgba(232,224,208,0.18);text-align:center;font-family:"DM Mono",monospace}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:999;align-items:center;justify-content:center;padding:1rem}
+.overlay.open{display:flex}
+.modal{background:#141210;border:1px solid rgba(232,220,180,0.12);border-radius:3px;width:480px;max-width:100%;padding:2.2rem}
+.m-abbr{font-family:"Playfair Display",serif;font-size:2.8rem;line-height:1;font-weight:900;font-style:italic}
+.m-team{font-size:0.7rem;color:rgba(232,224,208,0.35);margin-bottom:1rem;letter-spacing:0.15em;text-transform:uppercase;font-family:"DM Mono",monospace}
+.m-sname{font-size:1.4rem;font-weight:700;color:#f0ead8;margin-bottom:0.25rem;font-family:"Playfair Display",serif}
+.m-loc{font-size:0.72rem;color:rgba(232,224,208,0.3);margin-bottom:1.3rem;font-family:"DM Mono",monospace}
+.m-facts{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:1.4rem}
+.mf{background:rgba(232,220,180,0.04);border:1px solid rgba(232,220,180,0.08);border-radius:2px;padding:0.8rem 0.9rem}
+.mf-l{font-size:0.55rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(232,224,208,0.25);margin-bottom:0.28rem;font-family:"DM Mono",monospace}
+.mf-v{font-size:0.9rem;font-weight:500;color:#e8e0d0}
+.m-btns{display:flex;gap:0.5rem}
+.m-btn-exp{flex:1;background:rgba(232,220,180,0.04);border-radius:2px;font-family:"DM Sans",sans-serif;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.75rem;cursor:pointer;transition:background 0.2s;font-weight:500}
+.m-btn-exp:hover{background:rgba(232,220,180,0.1)}
+.m-btn-back{background:none;border:1px solid rgba(232,220,180,0.1);color:rgba(232,224,208,0.4);font-family:"DM Sans",sans-serif;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.75rem 1.1rem;border-radius:2px;cursor:pointer}
+#sp{min-height:100vh}
+.sp-nav{display:flex;align-items:center;padding:1.1rem 2rem;border-bottom:1px solid var(--sbr);background:var(--sbd)}
+.sp-logo{font-family:"Playfair Display",serif;font-size:1.2rem;color:var(--sa);flex:1;font-style:italic}
+.sp-back{font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--sm);cursor:pointer;font-family:"DM Mono",monospace}
+.sp-back:hover{color:var(--sa)}
+.sp-hero{padding:2.5rem 2rem 2rem;border-bottom:1px solid var(--sbr);background:var(--shb)}
+.sp-top{display:flex;align-items:flex-end;gap:1.4rem;margin-bottom:1.8rem}
+.sp-big{font-family:"Playfair Display",serif;font-size:4.5rem;color:var(--sa);line-height:1;font-weight:900;font-style:italic}
+.sp-tt h1{font-family:"Playfair Display",serif;font-size:2.4rem;color:var(--sh);line-height:1.05;font-weight:900}
+.sp-sname{font-size:0.95rem;color:var(--sa);margin-top:0.3rem;font-weight:500}
+.sp-loc{font-size:0.68rem;color:var(--sm);margin-top:0.18rem;font-family:"DM Mono",monospace}
+.sp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.sp-stat{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:0.85rem 1rem}
+.sp-sl{font-size:0.55rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--sm);margin-bottom:0.28rem;font-family:"DM Mono",monospace}
+.sp-sv{font-size:1rem;font-weight:500;color:var(--sh)}
+.sp-sv.ac{color:var(--sa)}
+.sp-tabs{display:flex;padding:0 2rem;border-bottom:1px solid var(--sbr);background:var(--sbd);overflow-x:auto}
+.sp-tab{font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--sm);padding:0.9rem 1rem;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;font-family:"DM Mono",monospace;white-space:nowrap}
+.sp-tab:hover{color:var(--st)}
+.sp-tab.active{color:var(--sa);border-bottom-color:var(--sa)}
+.sp-panel{display:none;padding:2rem 2.5rem 3rem}
+.sp-panel.active{display:block}
+.sp-sec{font-family:"Playfair Display",serif;font-size:1.2rem;color:var(--sh);margin-bottom:1.3rem;margin-top:0.3rem;font-weight:700;font-style:italic}
+.sp-fg{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:2rem}
+.sp-fc{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1rem 1.1rem}
+.sp-fl{font-size:0.55rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--sm);margin-bottom:0.35rem;font-family:"DM Mono",monospace}
+.sp-fv{font-size:0.88rem;color:var(--st);line-height:1.45}
+.dims{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}
+.dim{background:var(--sas);border:1px solid var(--sab);border-radius:2px;padding:1rem;text-align:center}
+.dn{font-family:"Playfair Display",serif;font-size:1.6rem;color:var(--sa);line-height:1;font-weight:900}
+.dl{font-size:0.57rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--sm);margin-top:0.28rem;font-family:"DM Mono",monospace}
+.tags{display:flex;flex-wrap:wrap;gap:9px}
+.tag{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;font-size:0.74rem;color:var(--st);padding:0.45rem 0.85rem;line-height:1.5}
+.lc{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.3rem 1.4rem;margin-bottom:11px}
+.ly{font-size:0.6rem;color:var(--sa);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:0.42rem;font-family:"DM Mono",monospace}
+.lt{font-size:0.95rem;font-weight:700;color:var(--sh);margin-bottom:0.38rem;font-family:"Playfair Display",serif}
+.ld{font-size:0.8rem;color:var(--sm);line-height:1.65}
+.rbox{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.8rem;text-align:center;margin-bottom:1.4rem}
+.rb{font-family:"Playfair Display",serif;font-size:4.5rem;color:var(--sa);line-height:1;font-weight:900;font-style:italic}
+.rs{font-size:0.68rem;color:var(--sm);margin-top:0.18rem;font-family:"DM Mono",monospace}
+.rbars{margin:1.3rem 0 0;text-align:left}
+.rr{display:flex;align-items:center;gap:0.9rem;margin-bottom:0.7rem}
+.rl{font-size:0.7rem;color:var(--sm);width:125px;flex-shrink:0}
+.rbg{flex:1;background:var(--sbr);border-radius:1px;height:4px}
+.rbf{height:4px;border-radius:1px;background:var(--sa)}
+.rv-num{font-size:0.68rem;color:var(--sa);width:28px;text-align:right;font-family:"DM Mono",monospace}
+.vote-form{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.4rem;margin-top:1.4rem}
+.score-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:0.45rem}
+.score-btn{width:35px;height:35px;border-radius:2px;border:1px solid var(--sbr);background:transparent;color:var(--st);font-family:"DM Sans",sans-serif;font-size:0.78rem;cursor:pointer;transition:all 0.15s}
+.score-btn.sel{background:var(--sa);color:var(--sbt);border-color:var(--sa)}
+.vbtn{border:none;font-family:"DM Sans",sans-serif;font-size:0.74rem;font-weight:500;letter-spacing:0.11em;text-transform:uppercase;padding:0.8rem 1.8rem;border-radius:2px;cursor:pointer;margin-top:1.1rem;background:var(--sa);color:var(--sbt);transition:opacity 0.2s;display:inline-block}
+.vbtn:hover{opacity:0.85}
+.vmsg{font-size:0.72rem;color:var(--sa);margin-top:0.7rem;display:none;font-family:"DM Mono",monospace}
+.rv-item{padding:1.1rem 0;border-bottom:1px solid var(--sbr)}
+.rv-item:last-child{border-bottom:none}
+.rv-score{font-family:"Playfair Display",serif;font-size:1.1rem;color:var(--sa);font-weight:900;font-style:italic}
+.rv-text{font-size:0.8rem;color:var(--sm);line-height:1.65;margin-top:0.25rem}
+.rv-date{font-size:0.58rem;color:rgba(232,224,208,0.22);font-family:"DM Mono",monospace;margin-top:0.25rem}
+.rv-textarea{width:100%;background:var(--sc);border:1px solid var(--sbr);border-radius:2px;color:var(--st);font-family:"DM Sans",sans-serif;font-size:0.82rem;padding:0.8rem 1rem;resize:vertical;min-height:85px;outline:none;margin-top:0.7rem}
+.rank-filter{background:rgba(232,220,180,0.04);border:1px solid rgba(232,220,180,0.12);border-radius:2px;color:rgba(232,224,208,0.45);font-family:"DM Mono",monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.4rem 0.85rem;cursor:pointer;transition:all 0.2s}
+.rank-filter.active{background:rgba(232,208,128,0.12);border-color:#e8d080;color:#e8d080}
+.rank-row{display:flex;align-items:center;gap:1.1rem;padding:0.95rem 1.1rem;background:rgba(232,220,180,0.03);border:1px solid rgba(232,220,180,0.07);border-radius:2px;margin-bottom:7px;cursor:pointer;transition:all 0.18s}
+.rank-row:hover{background:rgba(232,220,180,0.07);transform:translateX(4px)}
+.rank-num{font-family:"Playfair Display",serif;font-size:1.3rem;color:rgba(232,220,180,0.18);width:32px;flex-shrink:0;font-weight:900;font-style:italic}
+.rank-logo{width:34px;height:34px;object-fit:contain;flex-shrink:0}
+.rank-name{font-size:0.86rem;font-weight:500;color:#f0ead8;margin-bottom:0.15rem}
+.rank-stadium{font-size:0.65rem;color:rgba(232,224,208,0.33);font-family:"DM Mono",monospace}
+.rank-val{font-family:"Playfair Display",serif;font-size:1.4rem;font-weight:900;font-style:italic}
+.rank-sub{font-size:0.58rem;color:rgba(232,224,208,0.28);font-family:"DM Mono",monospace;text-align:right;margin-top:0.08rem}
+.cmp-row{display:grid;grid-template-columns:1fr 1fr}
+.cmp-cell{padding:0.85rem 1.1rem;border-bottom:1px solid rgba(232,220,180,0.06)}
+.cmp-lbl{font-size:0.53rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(232,224,208,0.26);margin-bottom:0.25rem;font-family:"DM Mono",monospace}
+.cmp-val{font-size:0.88rem;color:#e8e0d0;font-weight:500}
+.cmp-win{color:#e8d080}
+.vis-card{background:rgba(232,220,180,0.03);border:1px solid rgba(232,220,180,0.07);border-radius:3px;padding:0.95rem 0.6rem;display:flex;flex-direction:column;align-items:center;gap:0.35rem;cursor:pointer;transition:all 0.2s;position:relative}
+.vis-card.been{border-color:rgba(232,208,128,0.4);background:rgba(232,208,128,0.07)}
+.vis-card:hover{transform:translateY(-2px)}
+.vis-check{position:absolute;top:5px;left:6px;font-size:0.68rem;color:#e8d080;opacity:0}
+.vis-card.been .vis-check{opacity:1}
+.page-head{margin-bottom:2rem}
+.page-eye{font-family:"DM Mono",monospace;font-size:0.63rem;letter-spacing:0.22em;text-transform:uppercase;color:#e8d080;margin-bottom:0.55rem}
+.page-title{font-family:"Playfair Display",serif;font-size:2.6rem;color:#f5efe0;font-weight:900;margin-bottom:0.45rem}
+.page-sub{font-size:0.84rem;color:rgba(232,224,208,0.38);line-height:1.65}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-logo">Stadium <span>Index</span> &#8212; CFB</div>
+  <div class="nav-right">
+    <ul class="nav-links">
+      <li><a onclick="showPage('home')" id="nav-home" class="active">Stadiums</a></li>
+      <li><a onclick="showPage('rankings')" id="nav-rankings">Rankings</a></li>
+      <li><a onclick="showPage('compare')" id="nav-compare">Compare</a></li>
+      <li><a onclick="showPage('visited')" id="nav-visited">My Stadiums</a></li>
+    </ul>
+    <a class="nav-back" href="../index.html">&#8592; All Leagues</a>
+  </div>
+</nav>
+
+<div id="home">
+  <div class="hero">
+    <div class="hero-eye">College Football &#8212; All FBS</div>
+    <h1 class="hero-title">Every Stadium.<br><em>Every Story.</em></h1>
+    <p class="hero-sub">All FBS conferences &#8212; SEC, Big Ten, Big 12, ACC, MWC, Sun Belt, AAC, MAC, CUSA, and Independents.</p>
+    <div class="search-box"><input id="srch" type="text" placeholder="Search a team or stadium..."></div>
+  </div>
+  <div class="content" id="divs"></div>
+</div>
+
+<div id="rankings-page" style="padding:2.5rem;min-height:100vh">
+  <div style="max-width:900px;margin:0 auto">
+    <div class="page-head"><div class="page-eye">CFB Rankings</div><div class="page-title">Stadium Rankings</div><div class="page-sub">Sort all FBS stadiums by fan rating, capacity, age, and more.</div></div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:2rem">
+      <button class="rank-filter active" onclick="setRankSort('rating',this)">Fan Rating</button>
+      <button class="rank-filter" onclick="setRankSort('cap',this)">Capacity</button>
+      <button class="rank-filter" onclick="setRankSort('oldest',this)">Oldest First</button>
+      <button class="rank-filter" onclick="setRankSort('newest',this)">Newest First</button>
+      <button class="rank-filter" onclick="setRankSort('name',this)">A&#8211;Z</button>
+      <button class="rank-filter" onclick="setRankSort('conf',this)">By Conference</button>
+    </div>
+    <div id="rank-list"></div>
+  </div>
+</div>
+
+<div id="compare-page" style="padding:2.5rem;min-height:100vh">
+  <div style="max-width:900px;margin:0 auto">
+    <div class="page-head"><div class="page-eye">CFB Compare</div><div class="page-title">Compare Stadiums</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem">
+      <div>
+        <div style="font-size:0.58rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(232,224,208,0.33);margin-bottom:0.5rem;font-family:monospace">Stadium One</div>
+        <select id="cmp-a" onchange="renderCompare()" style="width:100%;background:#141210;border:1px solid rgba(232,220,180,0.15);border-radius:2px;color:#e8e0d0;font-family:sans-serif;font-size:0.83rem;padding:0.7rem 0.9rem;outline:none;cursor:pointer"></select>
+      </div>
+      <div>
+        <div style="font-size:0.58rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(232,224,208,0.33);margin-bottom:0.5rem;font-family:monospace">Stadium Two</div>
+        <select id="cmp-b" onchange="renderCompare()" style="width:100%;background:#141210;border:1px solid rgba(232,220,180,0.15);border-radius:2px;color:#e8e0d0;font-family:sans-serif;font-size:0.83rem;padding:0.7rem 0.9rem;outline:none;cursor:pointer"></select>
+      </div>
+    </div>
+    <div id="cmp-result"></div>
+  </div>
+</div>
+
+<div id="visited-page" style="padding:2.5rem;min-height:100vh">
+  <div style="max-width:900px;margin:0 auto">
+    <div class="page-head"><div class="page-eye">My CFB Stadiums</div><div class="page-title">My Stadiums</div><div class="page-sub" id="vis-sub">Track every FBS stadium you have visited.</div></div>
+    <div id="vis-grid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:9px"></div>
+  </div>
+</div>
+
+<div class="overlay" id="ov">
+  <div class="modal">
+    <div class="m-abbr" id="ma"></div>
+    <div class="m-team" id="mt"></div>
+    <div class="m-sname" id="ms"></div>
+    <div class="m-loc" id="ml"></div>
+    <div class="m-facts" id="mf"></div>
+    <div class="m-btns">
+      <button class="m-btn-exp" id="meb">EXPLORE THIS STADIUM &#8594;</button>
+      <button class="m-btn-back" onclick="closeModal()">BACK</button>
+    </div>
+  </div>
+</div>
+
+<div id="sp">
+  <div class="sp-nav"><div class="sp-logo">Stadium Index &#8212; CFB</div><div class="sp-back" onclick="showPage('home')">&#8592; All Stadiums</div></div>
+  <div class="sp-hero">
+    <div class="sp-top">
+      <div class="sp-big" id="spa"></div>
+      <div class="sp-tt"><h1 id="spn"></h1><div class="sp-sname" id="sps"></div><div class="sp-loc" id="spl"></div></div>
+    </div>
+    <div class="sp-stats">
+      <div class="sp-stat"><div class="sp-sl">Capacity</div><div class="sp-sv" id="spc"></div></div>
+      <div class="sp-stat"><div class="sp-sl">Opened</div><div class="sp-sv" id="spo"></div></div>
+      <div class="sp-stat"><div class="sp-sl">Conference</div><div class="sp-sv" id="spconf"></div></div>
+      <div class="sp-stat"><div class="sp-sl">Fan Rating</div><div class="sp-sv ac" id="spr"></div></div>
+    </div>
+  </div>
+  <div class="sp-tabs" id="sp-tabs-row">
+    <div class="sp-tab active" onclick="sTab('t-ov',this)">Overview</div>
+    <div class="sp-tab" onclick="sTab('t-lg',this)">Legends</div>
+    <div class="sp-tab" onclick="sTab('t-rt',this)">Fan Ratings</div>
+    <div class="sp-tab" onclick="sTab('t-rv',this)">Reviews</div>
+  </div>
+  <div id="t-ov" class="sp-panel active">
+    <div class="sp-sec">Stadium Facts</div><div class="sp-fg" id="sp-facts"></div>
+    <div class="sp-sec">Capacity Context</div><div class="dims" id="sp-dims"></div>
+    <div class="sp-sec">What Makes It Unique</div><div class="tags" id="sp-tags"></div>
+  </div>
+  <div id="t-lg" class="sp-panel"><div class="sp-sec">Legendary Moments</div><div id="sp-legs"></div></div>
+  <div id="t-rt" class="sp-panel">
+    <div class="sp-sec">Fan Ratings</div>
+    <div class="rbox"><div class="rb" id="rt-score"></div><div class="rs" id="rt-count"></div><div class="rbars" id="rt-bars"></div></div>
+    <div id="rt-vote-area"></div>
+  </div>
+  <div id="t-rv" class="sp-panel">
+    <div class="sp-sec">Reviews</div>
+    <div style="background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.4rem;margin-bottom:1.4rem" id="rv-list"></div>
+    <div id="rv-form-area"></div>
+  </div>
+</div>
+
+<script>
+
+const TEAMS = [
+  // SEC
+  {abbr:"ALA",name:"Alabama Crimson Tide",conf:"SEC",state:"AL",stadium:"Bryant-Denny Stadium",city:"Tuscaloosa, AL",cap:100077,opened:1929,p:"#9E1B32",s:"#828A8F",unique:["Third largest stadium in the US","Seating expanded 11 times since 1929","Home of the Crimson Tide dynasty","Roll Tide tradition"]},
+  {abbr:"AUB",name:"Auburn Tigers",conf:"SEC",state:"AL",stadium:"Jordan-Hare Stadium",city:"Auburn, AL",cap:87451,opened:1939,p:"#0C2340",s:"#E87722",unique:["Eagle flights before every game","Toomer's Corner toilet paper tradition","One of the loudest stadiums in college football"]},
+  {abbr:"UGA",name:"Georgia Bulldogs",conf:"SEC",state:"GA",stadium:"Sanford Stadium",city:"Athens, GA",cap:92746,opened:1929,p:"#BA0C2F",s:"#000000",unique:["Hedges surrounding the field — a 90-year tradition","Between the Hedges — one of CFB's iconic phrases","Uga the bulldog mascot lives in an air-conditioned doghouse on the sideline"]},
+  {abbr:"FLA",name:"Florida Gators",conf:"SEC",state:"FL",stadium:"Ben Hill Griffin Stadium",city:"Gainesville, FL",cap:88548,opened:1930,p:"#0021A5",s:"#FA4616",unique:["The Swamp — one of the most intimidating venues in CFB","One of the loudest stadiums in college football","Gator chomp tradition"]},
+  {abbr:"LSU",name:"LSU Tigers",conf:"SEC",state:"LA",stadium:"Tiger Stadium",city:"Baton Rouge, LA",cap:102321,opened:1924,p:"#461D7C",s:"#FDD023",unique:["Death Valley — third largest stadium in the US","Night games are legendary for atmosphere","LSU tiger mascot Mike lives on campus"]},
+  {abbr:"TENN",name:"Tennessee Volunteers",conf:"SEC",state:"TN",stadium:"Neyland Stadium",city:"Knoxville, TN",cap:101915,opened:1921,p:"#FF8200",s:"#58595B",unique:["Second largest stadium in the US","Rocky Top anthem is one of CFB's most recognized songs","Tennessee Vol Walk tradition"]},
+  {abbr:"ARK",name:"Arkansas Razorbacks",conf:"SEC",state:"AR",stadium:"Donald W. Reynolds Razorback Stadium",city:"Fayetteville, AR",cap:76412,opened:1938,p:"#9D2235",s:"#000000",unique:["Calling the Hogs — iconic WOO PIG SOOIE chant","Located in the Ozark Mountains","One of CFB's most passionate fan bases"]},
+  {abbr:"MSU",name:"Mississippi State Bulldogs",conf:"SEC",state:"MS",stadium:"Davis Wade Stadium",city:"Starkville, MS",cap:61337,opened:1914,p:"#5D1725",s:"#FFFFFF",unique:["Cowbells — MSU fans ring cowbells throughout the game","One of CFB's most unique fan traditions","The Junction City atmosphere"]},
+  {abbr:"OLE",name:"Ole Miss Rebels",conf:"SEC",state:"MS",stadium:"Vaught-Hemingway Stadium",city:"Oxford, MS",cap:64038,opened:1915,p:"#CE1126",s:"#14213D",unique:["The Grove — most famous tailgate spot in all of college football","Hotty Toddy cheer","Oxford Square pregame tradition"]},
+  {abbr:"MIZZ",name:"Missouri Tigers",conf:"SEC",state:"MO",stadium:"Faurot Field at Memorial Stadium",city:"Columbia, MO",cap:62621,opened:1926,p:"#F1B82D",s:"#000000",unique:["Faurot Field named for legendary coach Don Faurot","M-I-Z Z-O-U chant","Gateway to the SEC"]},
+  {abbr:"SC",name:"South Carolina Gamecocks",conf:"SEC",state:"SC",stadium:"Williams-Brice Stadium",city:"Columbia, SC",cap:77559,opened:1934,p:"#73000A",s:"#000000",unique:["2001 biggest stadium in SC","Cockaboose railroad cars beyond the end zone","Sandstorm entrance music tradition"]},
+  {abbr:"VANDY",name:"Vanderbilt Commodores",conf:"SEC",state:"TN",stadium:"FirstBank Stadium",city:"Nashville, TN",cap:40550,opened:1922,p:"#866D4B",s:"#000000",unique:["Only private school in the SEC","Located in Nashville — Music City","Smallest stadium in the SEC"]},
+  {abbr:"KY",name:"Kentucky Wildcats",conf:"SEC",state:"KY",stadium:"Kroger Field",city:"Lexington, KY",cap:61000,opened:1973,p:"#0033A0",s:"#FFFFFF",unique:["Located in horse country — Keeneland nearby","Commonwealth Stadium renovated in 2015","Wildcat Walk pregame tradition"]},
+  // Big Ten
+  {abbr:"MICH",name:"Michigan Wolverines",conf:"Big Ten",state:"MI",stadium:"Michigan Stadium",city:"Ann Arbor, MI",cap:107601,opened:1927,p:"#00274C",s:"#FFCB05",unique:["The Big House — largest stadium in the US and the world","Over 100,000 fans since 1975","The tunnel walk is one of CFB's most iconic moments"]},
+  {abbr:"OSU",name:"Ohio State Buckeyes",conf:"Big Ten",state:"OH",stadium:"Ohio Stadium",city:"Columbus, OH",cap:102780,opened:1922,p:"#BB0000",s:"#666666",unique:["The Horseshoe — iconic double-deck stadium","Script Ohio performed by the marching band is a CFB tradition","One of the most passionate fan bases in all of sports"]},
+  {abbr:"PSU",name:"Penn State Nittany Lions",conf:"Big Ten",state:"PA",stadium:"Beaver Stadium",city:"University Park, PA",cap:106572,opened:1960,p:"#041E42",s:"#FFFFFF",unique:["White Out games are among CFB's most intimidating atmospheres","Second largest stadium in the US","We Are — Penn State chant"]},
+  {abbr:"WISC",name:"Wisconsin Badgers",conf:"Big Ten",state:"WI",stadium:"Camp Randall Stadium",city:"Madison, WI",cap:80321,opened:1917,p:"#C5050C",s:"#FFFFFF",unique:["Jump Around tradition between 3rd and 4th quarter","One of CFB's most energetic student sections","Historic stadium built on Civil War training grounds"]},
+  {abbr:"IOWA",name:"Iowa Hawkeyes",conf:"Big Ten",state:"IA",stadium:"Kinnick Stadium",city:"Iowa City, IA",cap:69250,opened:1929,p:"#FFCD00",s:"#000000",unique:["Pink locker room for visitors — a psychological strategy","Iowa Wave to children's hospital patients every first quarter","Kinnick named for Heisman winner Nile Kinnick"]},
+  {abbr:"MINN",name:"Minnesota Golden Gophers",conf:"Big Ten",state:"MN",stadium:"Huntington Bank Stadium",city:"Minneapolis, MN",cap:50805,opened:2009,p:"#7A0019",s:"#FFCC33",unique:["Returned to campus in 2009 after decades downtown","Ski-U-Mah battle cry","Paul Bunyan's Axe rivalry trophy with Wisconsin"]},
+  {abbr:"NEB",name:"Nebraska Cornhuskers",conf:"Big Ten",state:"NE",stadium:"Memorial Stadium",city:"Lincoln, NE",cap:90167,opened:1923,p:"#E41C38",s:"#F5F1E7",unique:["Lincoln becomes the third-largest city in Nebraska on game days","Sea of red — over 400 consecutive sellouts","Tunnel Walk is one of CFB's most electric entrances"]},
+  {abbr:"NW",name:"Northwestern Wildcats",conf:"Big Ten",state:"IL",stadium:"Ryan Field",city:"Evanston, IL",cap:47130,opened:1926,p:"#4E2683",s:"#000000",unique:["Only private school in the Big Ten","Located on the shores of Lake Michigan","Smallest stadium in the Big Ten"]},
+  {abbr:"ILL",name:"Illinois Fighting Illini",conf:"Big Ten",state:"IL",stadium:"Memorial Stadium",city:"Champaign, IL",cap:60670,opened:1923,p:"#13294B",s:"#E84A27",unique:["Memorial Stadium built as WWI tribute","Chief Illiniwek controversy","I-L-L I-N-I chant"]},
+  {abbr:"IND",name:"Indiana Hoosiers",conf:"Big Ten",state:"IN",stadium:"Memorial Stadium",city:"Bloomington, IN",cap:52646,opened:1960,p:"#990000",s:"#FFFFFF",unique:["Recently renovated with new premium facilities","Indiana's first Big Ten West division title in 2020","Drumline tradition"]},
+  {abbr:"PUR",name:"Purdue Boilermakers",conf:"Big Ten",state:"IN",stadium:"Ross-Ade Stadium",city:"West Lafayette, IN",cap:57236,opened:1924,p:"#CEB888",s:"#000000",unique:["Purdue Pete mascot","Boilermaker Special train mascot","Known for engineering and aerospace programs"]},
+  {abbr:"RUTG",name:"Rutgers Scarlet Knights",conf:"Big Ten",state:"NJ",stadium:"SHI Stadium",city:"Piscataway, NJ",cap:52454,opened:1994,p:"#CC0033",s:"#000000",unique:["Site of first-ever college football game in 1869","The Birthplace of College Football","High Point Solutions Stadium recently renamed"]},
+  {abbr:"MARY",name:"Maryland Terrapins",conf:"Big Ten",state:"MD",stadium:"SECU Stadium",city:"College Park, MD",cap:51802,opened:1950,p:"#E03A3E",s:"#FFD520",unique:["One of the most colorful uniforms in CFB","Terrapin mascot Testudo","Close to Washington DC — unique recruiting advantage"]},
+  {abbr:"MICH-ST",name:"Michigan State Spartans",conf:"Big Ten",state:"MI",stadium:"Spartan Stadium",city:"East Lansing, MI",cap:75005,opened:1923,p:"#18453B",s:"#FFFFFF",unique:["Spartan Stadium expanded 8 times","The Spartan Walk pregame tradition","Classic rivalry with Michigan — The Game"]},
+  {abbr:"UCLA",name:"UCLA Bruins",conf:"Big Ten",state:"CA",stadium:"Rose Bowl",city:"Pasadena, CA",cap:88565,opened:1922,p:"#2D68C4",s:"#F2A900",unique:["The Granddaddy of Them All — Rose Bowl Stadium","One of the most iconic venues in American sports","Played in Pasadena since 1982"]},
+  {abbr:"USC",name:"USC Trojans",conf:"Big Ten",state:"CA",stadium:"Los Angeles Memorial Coliseum",city:"Los Angeles, CA",cap:78500,opened:1923,p:"#990000",s:"#FFC72C",unique:["Site of two Olympic Games (1932 and 1984)","Traveler the white horse runs the end zone on touchdowns","One of the most storied programs in CFB history"]},
+  {abbr:"WASH",name:"Washington Huskies",conf:"Big Ten",state:"WA",stadium:"Husky Stadium",city:"Seattle, WA",cap:70138,opened:1920,p:"#4B2E83",s:"#B7A57A",unique:["Tailgate boats arrive by water on Lake Washington","One of the most scenic stadium settings in CFB","Apple Cup rivalry with Washington State"]},
+  {abbr:"WSU",name:"Washington State Cougars",conf:"Big Ten",state:"WA",stadium:"Gesa Field at Martin Stadium",city:"Pullman, WA",cap:31674,opened:1972,p:"#981E32",s:"#5E6A71",unique:["Most remote Power 4 campus","Cougar Gold cheese is a campus staple","The Palouse — rolling hills of eastern Washington"]},
+  {abbr:"ORE",name:"Oregon Ducks",conf:"Big Ten",state:"OR",stadium:"Autzen Stadium",city:"Eugene, OR",cap:54000,opened:1967,p:"#154733",s:"#FEE123",unique:["Known for having the most uniform combinations in CFB","Nike founder Phil Knight — massive donor","Autzen is one of the loudest stadiums per square foot in CFB"]},
+  {abbr:"OST",name:"Oregon State Beavers",conf:"Big Ten",state:"OR",stadium:"Reser Stadium",city:"Corvallis, OR",cap:35362,opened:1953,p:"#DC4405",s:"#000000",unique:["Reser Stadium recently renovated","Beaver Nation fan base","Civil War rivalry with Oregon"]},
+  // Big 12
+  {abbr:"TEX",name:"Texas Longhorns",conf:"Big 12",state:"TX",stadium:"Darrell K Royal-Texas Memorial Stadium",city:"Austin, TX",cap:100119,opened:1924,p:"#BF5700",s:"#FFFFFF",unique:["One of the largest stadiums in college football","The Eyes of Texas will not be silenced","The Tower — iconic UT landmark on campus"]},
+  {abbr:"OU",name:"Oklahoma Sooners",conf:"Big 12",state:"OK",stadium:"Owen Field at Memorial Stadium",city:"Norman, OK",cap:80126,opened:1923,p:"#841617",s:"#FDF9D8",unique:["Boomer Sooner fight song","Schooner Sooner wagon circles the field on touchdowns","Red River Rivalry with Texas is one of CFB's greatest games"]},
+  {abbr:"TCU",name:"TCU Horned Frogs",conf:"Big 12",state:"TX",stadium:"Amon G. Carter Stadium",city:"Fort Worth, TX",cap:45000,opened:1930,p:"#4D1979",s:"#A3A9AC",unique:["Amon G. Carter Stadium rebuilt in 2012","Horned Frog mascot is unique in CFB","Fort Worth — Cowtown atmosphere"]},
+  {abbr:"KSTATE",name:"Kansas State Wildcats",conf:"Big 12",state:"KS",stadium:"Bill Snyder Family Stadium",city:"Manhattan, KS",cap:52000,opened:1968,p:"#512888",s:"#D1D1D1",unique:["Named for legendary coach Bill Snyder","The Little Apple — Manhattan, KS","One of the great turnaround stories in CFB history"]},
+  {abbr:"KAN",name:"Kansas Jayhawks",conf:"Big 12",state:"KS",stadium:"David Booth Kansas Memorial Stadium",city:"Lawrence, KS",cap:47233,opened:1921,p:"#0051A5",s:"#E8000D",unique:["Rock Chalk Jayhawk chant is one of CFB's most unique","Located in college basketball's holy land","Memorial Stadium recently renovated"]},
+  {abbr:"IOWA-ST",name:"Iowa State Cyclones",conf:"Big 12",state:"IA",stadium:"Jack Trice Stadium",city:"Ames, IA",cap:61500,opened:1975,p:"#C8102E",s:"#F1BE48",unique:["Jack Trice — first Black athlete at a Big 8 school","Cy-Hawk rivalry with Iowa","Cardinal and gold are among the most recognizable colors in the Big 12"]},
+  {abbr:"WVU",name:"West Virginia Mountaineers",conf:"Big 12",state:"WV",stadium:"Milan Puskar Stadium",city:"Morgantown, WV",cap:60000,opened:1980,p:"#002855",s:"#EAAA00",unique:["Country Roads is one of CFB's greatest fight songs","Couch burning tradition after big wins","The Don Nehlen era defined WVU football"]},
+  {abbr:"OSU-CF",name:"Oklahoma State Cowboys",conf:"Big 12",state:"OK",stadium:"Boone Pickens Stadium",city:"Stillwater, OK",cap:55509,opened:1914,p:"#FF6600",s:"#000000",unique:["Named for legendary donor T. Boone Pickens","Pistols Firing tradition","Orange Power fan base"]},
+  {abbr:"BYU",name:"BYU Cougars",conf:"Big 12",state:"UT",stadium:"LaVell Edwards Stadium",city:"Provo, UT",cap:63470,opened:1964,p:"#002E5D",s:"#FFFFFF",unique:["Named for legendary coach LaVell Edwards","No alcohol policy at games","1984 national champions — one of CFB's most unlikely titles"]},
+  {abbr:"UCF",name:"UCF Knights",conf:"Big 12",state:"FL",stadium:"FBC Mortgage Stadium",city:"Orlando, FL",cap:44206,opened:2007,p:"#000000",s:"#BA9B37",unique:["One of the largest universities in the US","Self-declared 2017 national champions","Located in the heart of Orlando"]},
+  {abbr:"HOU",name:"Houston Cougars",conf:"Big 12",state:"TX",stadium:"TDECU Stadium",city:"Houston, TX",cap:40000,opened:2014,p:"#C8102E",s:"#FFFFFF",unique:["Recently joined the Big 12","Located in the fourth-largest city in the US","The Shasta mascot"]},
+  {abbr:"CIN",name:"Cincinnati Bearcats",conf:"Big 12",state:"OH",stadium:"Nippert Stadium",city:"Cincinnati, OH",cap:40000,opened:1916,p:"#E00122",s:"#000000",unique:["Nippert Stadium — one of the oldest in CFB","Urban canyon atmosphere","2021 College Football Playoff berth"]},
+  {abbr:"ARIZ",name:"Arizona Wildcats",conf:"Big 12",state:"AZ",stadium:"Arizona Stadium",city:"Tucson, AZ",cap:50782,opened:1928,p:"#CC0033",s:"#003366",unique:["Bear Down chant","Located in the Sonoran Desert","The A on Sentinel Peak — iconic landmark"]},
+  {abbr:"ASU",name:"Arizona State Sun Devils",conf:"Big 12",state:"AZ",stadium:"Mountain America Stadium",city:"Tempe, AZ",cap:53599,opened:1958,p:"#8C1D40",s:"#FFC627",unique:["Sun Devil Stadium — iconic desert setting","Sparky the Sun Devil mascot","Fork 'em Devils tradition"]},
+  {abbr:"COL",name:"Colorado Buffaloes",conf:"Big 12",state:"CO",stadium:"Folsom Field",city:"Boulder, CO",cap:50183,opened:1924,p:"#CFB87C",s:"#000000",unique:["Ralphie the buffalo runs the field before every game","One of the most scenic mountain settings in CFB","Black and gold — The Buffs"]},
+  {abbr:"UTAH",name:"Utah Utes",conf:"Big 12",state:"UT",stadium:"Rice-Eccles Stadium",city:"Salt Lake City, UT",cap:51444,opened:1998,p:"#CC0000",s:"#000000",unique:["Site of 2002 Winter Olympics ceremonies","Ute drum tradition","The U on the mountain above Salt Lake City"]},
+  {abbr:"TTU",name:"Texas Tech Red Raiders",conf:"Big 12",state:"TX",stadium:"Jones AT&T Stadium",city:"Lubbock, TX",cap:60454,opened:1947,p:"#CC0000",s:"#000000",unique:["Double T mascot and logo","Guns Up tradition","Located on the South Plains of Texas"]},
+  {abbr:"BAY",name:"Baylor Bears",conf:"Big 12",state:"TX",stadium:"McLane Stadium",city:"Waco, TX",cap:45140,opened:2014,p:"#003015",s:"#FFB81C",unique:["McLane Stadium sits on the Brazos River","Sic Em Bears tradition","Private Baptist university in the Big 12"]},
+  // ACC
+  {abbr:"CLEM",name:"Clemson Tigers",conf:"ACC",state:"SC",stadium:"Memorial Stadium",city:"Clemson, SC",cap:82000,opened:1942,p:"#F66733",s:"#522D80",unique:["Death Valley — one of CFB's most intimidating venues","Running down the hill is one of CFB's greatest traditions","Howard's Rock rubbed by every Tiger player before the game"]},
+  {abbr:"FSU",name:"Florida State Seminoles",conf:"ACC",state:"FL",stadium:"Doak Campbell Stadium",city:"Tallahassee, FL",cap:79560,opened:1950,p:"#782F40",s:"#CEB888",unique:["Osceola plants a flaming spear at midfield before every game","Tomahawk Chop with the famous chant","One of CFB's most successful programs of the 1990s"]},
+  {abbr:"MIAMI",name:"Miami Hurricanes",conf:"ACC",state:"FL",stadium:"Hard Rock Stadium",city:"Miami Gardens, FL",cap:64767,opened:1987,p:"#005030",s:"#F47321",unique:["The Turnover Chain — most famous prop in modern CFB","Shared with the NFL's Miami Dolphins","U tradition — fans hold up the U sign"]},
+  {abbr:"NCST",name:"NC State Wolfpack",conf:"ACC",state:"NC",stadium:"Carter-Finley Stadium",city:"Raleigh, NC",cap:57583,opened:1966,p:"#CC0000",s:"#FFFFFF",unique:["Red and white Wolf Pack","Located in the Research Triangle","Rivalry with UNC — the State Fair game"]},
+  {abbr:"UNC",name:"North Carolina Tar Heels",conf:"ACC",state:"NC",stadium:"Kenan Memorial Stadium",city:"Chapel Hill, NC",cap:50500,opened:1927,p:"#7BAFD4",s:"#FFFFFF",unique:["Carolina Blue is one of CFB's most iconic colors","Kenan Stadium surrounded by pine trees","Home of Michael Jordan's alma mater"]},
+  {abbr:"DUKE",name:"Duke Blue Devils",conf:"ACC",state:"NC",stadium:"Wallace Wade Stadium",city:"Durham, NC",cap:40004,opened:1929,p:"#003087",s:"#FFFFFF",unique:["Wallace Wade Stadium — one of CFB's oldest","Better known for basketball but historic football program","Private school in the Research Triangle"]},
+  {abbr:"VT",name:"Virginia Tech Hokies",conf:"ACC",state:"VA",stadium:"Lane Stadium",city:"Blacksburg, VA",cap:65632,opened:1965,p:"#630031",s:"#CF4420",unique:["Enter Sandman entrance is the loudest in CFB","Metallica's Enter Sandman plays as team runs out","Beamer Ball era defined special teams play"]},
+  {abbr:"UVA",name:"Virginia Cavaliers",conf:"ACC",state:"VA",stadium:"Scott Stadium",city:"Charlottesville, VA",cap:61500,opened:1931,p:"#232D4B",s:"#F84C1E",unique:["Located near Monticello — Thomas Jefferson's home","ACC Coastal division member","Good Old Song fight song"]},
+  {abbr:"PITT",name:"Pittsburgh Panthers",conf:"ACC",state:"PA",stadium:"Acrisure Stadium",city:"Pittsburgh, PA",cap:68400,opened:2001,p:"#003594",s:"#FFB81C",unique:["Shares Acrisure Stadium with the NFL's Steelers","Hail to Pitt fight song","The Panther mascot"]},
+  {abbr:"SYR",name:"Syracuse Orange",conf:"ACC",state:"NY",stadium:"JMA Wireless Dome",city:"Syracuse, NY",cap:49250,opened:1980,p:"#D44500",s:"#FFFFFF",unique:["The Carrier Dome — largest on-campus domed stadium","Otto the Orange mascot","Home of Jim Brown and Ernie Davis"]},
+  {abbr:"LOU",name:"Louisville Cardinals",conf:"ACC",state:"KY",stadium:"L&N Federal Credit Union Stadium",city:"Louisville, KY",cap:65000,opened:1998,p:"#AD0000",s:"#000000",unique:["Cardinal Stadium recently renamed","Louisville Slugger bat museum nearby","L1C4 — Louisville First City Fourth"]},
+  {abbr:"GT",name:"Georgia Tech Yellow Jackets",conf:"ACC",state:"GA",stadium:"Bobby Dodd Stadium",city:"Atlanta, GA",cap:55000,opened:1913,p:"#B3A369",s:"#003057",unique:["Bobby Dodd Stadium — oldest on-campus stadium in FBS","THWG — To Hell With Georgia","Located in midtown Atlanta"]},
+  {abbr:"BC",name:"Boston College Eagles",conf:"ACC",state:"MA",stadium:"Alumni Stadium",city:"Chestnut Hill, MA",cap:44500,opened:1957,p:"#8B0000",s:"#C9A227",unique:["Located in suburban Boston","Private Jesuit university","The Eagles of the ACC"]},
+  {abbr:"WAKE",name:"Wake Forest Demon Deacons",conf:"ACC",state:"NC",stadium:"Truist Field",city:"Winston-Salem, NC",cap:31500,opened:1968,p:"#9E7E38",s:"#000000",unique:["Smallest stadium in the ACC","Private Baptist university","Deacon mascot in a top hat"]},
+  {abbr:"CAL",name:"California Golden Bears",conf:"ACC",state:"CA",stadium:"California Memorial Stadium",city:"Berkeley, CA",cap:52500,opened:1923,p:"#003262",s:"#FDB515",unique:["Stadium sits on the Hayward Fault line","The Big Game rivalry with Stanford","Historic stadium in the Berkeley Hills"]},
+  {abbr:"STAN",name:"Stanford Cardinal",conf:"ACC",state:"CA",stadium:"Stanford Stadium",city:"Stanford, CA",cap:50000,opened:2006,p:"#8C1515",s:"#B3995D",unique:["The Tree mascot — unofficial but beloved","Big Game rivalry with Cal","Private university with the most Olympic gold medals"]},
+  {abbr:"SMU",name:"SMU Mustangs",conf:"ACC",state:"TX",stadium:"Gerald J. Ford Stadium",city:"Dallas, TX",cap:32000,opened:2000,p:"#0038A8",s:"#C8102E",unique:["Death Penalty program — the only one in CFB history","Located in the heart of Dallas","Peruna the Shetland pony mascot"]},
+  // AAC
+  {abbr:"MEM",name:"Memphis Tigers",conf:"AAC",state:"TN",stadium:"Simmons Bank Liberty Stadium",city:"Memphis, TN",cap:58325,opened:1965,p:"#003087",s:"#898D8D",unique:["Liberty Bowl stadium","Located in Memphis — Blues and BBQ capital","Strong basketball school with growing football program"]},
+  {abbr:"TULSA",name:"Tulsa Golden Hurricane",conf:"AAC",state:"OK",stadium:"H.A. Chapman Stadium",city:"Tulsa, OK",cap:30000,opened:1930,p:"#002D62",s:"#C8A951",unique:["Private university in Tulsa","Golden Hurricane — unique mascot name","Strong oil industry connection in Tulsa"]},
+  {abbr:"NAVY",name:"Navy Midshipmen",conf:"AAC",state:"MD",stadium:"Navy-Marine Corps Memorial Stadium",city:"Annapolis, MD",cap:35000,opened:1959,p:"#00205B",s:"#C5B358",unique:["Service academy — every player serves after graduation","Army-Navy Game is one of the most patriotic in sports","Option offense is a Navy tradition"]},
+  {abbr:"TULANE",name:"Tulane Green Wave",conf:"AAC",state:"LA",stadium:"Yulman Stadium",city:"New Orleans, LA",cap:30000,opened:2014,p:"#006747",s:"#418FDE",unique:["Located in New Orleans — unique game day city","Private university with strong academics","The Wave tradition"]},
+  {abbr:"ECU",name:"East Carolina Pirates",conf:"AAC",state:"NC",stadium:"Dowdy-Ficklen Stadium",city:"Greenville, NC",cap:50000,opened:1963,p:"#592A8A",s:"#FDC636",unique:["Pirate Nation — passionate fan base","Rival of NC State and UNC","Purple and Gold"]},
+  {abbr:"USF",name:"South Florida Bulls",conf:"AAC",state:"FL",stadium:"Raymond James Stadium",city:"Tampa, FL",cap:65890,opened:1998,p:"#006747",s:"#CFC493",unique:["Shares Raymond James Stadium with the NFL's Buccaneers","Located in Tampa Bay area","The Bull mascot Rocky"]},
+  {abbr:"UCONN",name:"UConn Huskies",conf:"AAC",state:"CT",stadium:"Pratt & Whitney Stadium at Rentschler Field",city:"East Hartford, CT",cap:38066,opened:2003,p:"#000E2F",s:"#E4002B",unique:["Better known for basketball dynasties","Rentschler Field — off-campus stadium","Independent before rejoining AAC"]},
+  {abbr:"TEMP",name:"Temple Owls",conf:"AAC",state:"PA",stadium:"Lincoln Financial Field",city:"Philadelphia, PA",cap:69176,opened:2003,p:"#9D2235",s:"#FFFFFF",unique:["Shares Lincoln Financial Field with NFL Eagles","Located in Philadelphia","The Owls — one of CFB's unique mascots"]},
+  // MWC
+  {abbr:"SDSU",name:"San Diego State Aztecs",conf:"MWC",state:"CA",stadium:"Snapdragon Stadium",city:"San Diego, CA",cap:35000,opened:2022,p:"#A6192E",s:"#000000",unique:["Snapdragon Stadium — one of the newest in CFB","Located in Mission Valley","Aztec Warrior mascot"]},
+  {abbr:"BSU",name:"Boise State Broncos",conf:"MWC",state:"ID",stadium:"Albertsons Stadium",city:"Boise, ID",cap:36387,opened:1970,p:"#0033A0",s:"#D64309",unique:["The Blue Turf — Smurf Turf is the most famous in CFB","Only blue artificial turf field in major college football","Career of Kellen Moore defined the program"]},
+  {abbr:"NV",name:"Nevada Wolf Pack",conf:"MWC",state:"NV",stadium:"Mackay Stadium",city:"Reno, NV",cap:30000,opened:1966,p:"#003366",s:"#8B9EA8",unique:["Located in Reno — The Biggest Little City","Colin Kaepernick played here","The Nevada-Fresno rivalry"]},
+  {abbr:"UNLV",name:"UNLV Rebels",conf:"MWC",state:"NV",stadium:"Allegiant Stadium",city:"Las Vegas, NV",cap:65000,opened:2020,p:"#CF0A2C",s:"#706F6F",unique:["Shares Allegiant Stadium with NFL's Raiders","Las Vegas — unique CFB market","Hey Reb! mascot"]},
+  {abbr:"FRES",name:"Fresno State Bulldogs",conf:"MWC",state:"CA",stadium:"Valley Children's Stadium",city:"Fresno, CA",cap:41031,opened:1980,p:"#C41230",s:"#13284F",unique:["Red Wave fan base is one of the most passionate in G5","The Central Valley of California","Derek Carr and David Carr played here"]},
+  {abbr:"SJSU",name:"San Jose State Spartans",conf:"MWC",state:"CA",stadium:"CEFCU Stadium",city:"San Jose, CA",cap:30000,opened:1933,p:"#0055A2",s:"#E5A823",unique:["Located in Silicon Valley","Tommie Smith and John Carlos — 1968 Olympic protest","Home of many NFL prospects"]},
+  {abbr:"AFA",name:"Air Force Falcons",conf:"MWC",state:"CO",stadium:"Falcon Stadium",city:"Colorado Springs, CO",cap:46692,opened:1962,p:"#003087",s:"#8B9EA8",unique:["Service academy — every player serves after graduation","Located at 6,900 feet elevation","Option offense is Air Force tradition"]},
+  {abbr:"WYO",name:"Wyoming Cowboys",conf:"MWC",state:"WY",stadium:"War Memorial Stadium",city:"Laramie, WY",cap:29181,opened:1950,p:"#492F24",s:"#FFC425",unique:["Highest elevation stadium in FBS at 7,220 feet","The Wind — notorious weather conditions","Cowboy Joe mascot"]},
+  {abbr:"CSU",name:"Colorado State Rams",conf:"MWC",state:"CO",stadium:"Canvas Stadium",city:"Fort Collins, CO",cap:41000,opened:2017,p:"#1E4D2B",s:"#C8C372",unique:["Canvas Stadium — one of the newest in CFB","Located in Fort Collins — microbrewery capital","Rocky Mountain Showdown rivalry with Colorado"]},
+  {abbr:"UTAH-ST",name:"Utah State Aggies",conf:"MWC",state:"UT",stadium:"Merlin Olsen Field at Maverik Stadium",city:"Logan, UT",cap:25513,opened:1968,p:"#0F2439",s:"#8A8D8F",unique:["Named for Merlin Olsen — NFL Hall of Famer","Located in Cache Valley","Jordan Love played here before Green Bay"]},
+  // Sun Belt
+  {abbr:"APP",name:"Appalachian State Mountaineers",conf:"Sun Belt",state:"NC",stadium:"Kidd Brewer Stadium",city:"Boone, NC",cap:31200,opened:1962,p:"#000000",s:"#FFD700",unique:["Beat Michigan 34-32 in 2007 — the greatest upset in CFB history","Mountain atmosphere at 3,300 feet elevation","Three straight FCS national titles"]},
+  {abbr:"GAST",name:"Georgia State Panthers",conf:"Sun Belt",state:"GA",stadium:"Center Parc Credit Union Stadium",city:"Atlanta, GA",cap:24000,opened:1913,p:"#0039A6",s:"#CC0000",unique:["Plays in historic Grant Field — oldest on-campus stadium","Located in downtown Atlanta","Young program still building tradition"]},
+  {abbr:"GASOU",name:"Georgia Southern Eagles",conf:"Sun Belt",state:"GA",stadium:"Paulson Stadium",city:"Statesboro, GA",cap:25000,opened:1941,p:"#011E41",s:"#C0A654",unique:["Six FCS national championships — one of the most successful programs in history","Triple option offense is a Georgia Southern tradition","Eagle Creek tailgate tradition"]},
+  {abbr:"TROY",name:"Troy Trojans",conf:"Sun Belt",state:"AL",stadium:"Veterans Memorial Stadium",city:"Troy, AL",cap:30000,opened:1999,p:"#8B2332",s:"#FFFFFF",unique:["Located in Troy, Alabama","Consistently competitive Sun Belt program","The Trojans mascot"]},
+  {abbr:"USA",name:"South Alabama Jaguars",conf:"Sun Belt",state:"AL",stadium:"Hancock Whitney Stadium",city:"Mobile, AL",cap:30000,opened:2020,p:"#00205B",s:"#C8A951",unique:["One of the newest FBS programs","Jaguar mascot","Gulf Coast location"]},
+  {abbr:"ARST",name:"Arkansas State Red Wolves",conf:"Sun Belt",state:"AR",stadium:"Centennial Bank Stadium",city:"Jonesboro, AR",cap:31949,opened:1974,p:"#CC0000",s:"#000000",unique:["Red Wolf mascot","The Delta — eastern Arkansas setting","Multiple Sun Belt championships"]},
+  {abbr:"ULAF",name:"Louisiana Ragin Cajuns",conf:"Sun Belt",state:"LA",stadium:"Cajun Field",city:"Lafayette, LA",cap:41426,opened:1971,p:"#CE181E",s:"#0A0203",unique:["Ragin Cajuns — one of CFB's best nicknames","Located in Cajun Country","Strong Cajun food tailgate tradition"]},
+  {abbr:"TXST",name:"Texas State Bobcats",conf:"Sun Belt",state:"TX",stadium:"Bobcat Stadium",city:"San Marcos, TX",cap:30000,opened:1981,p:"#501214",s:"#8C734B",unique:["Located on the San Marcos River","Growing program in the Sun Belt","The Bobcats mascot"]},
+  {abbr:"JKST",name:"Jackson State Tigers",conf:"Sun Belt",state:"MS",stadium:"Mississippi Veterans Memorial Stadium",city:"Jackson, MS",cap:60492,opened:1950,p:"#003893",s:"#F2AE00",unique:["Deion Sanders coached here — Thee Pregame Show","HBCU powerhouse turned national spotlight","Jackson State Bowl connection"]},
+  // MAC
+  {abbr:"BALL",name:"Ball State Cardinals",conf:"MAC",state:"IN",stadium:"Scheumann Stadium",city:"Muncie, IN",cap:22500,opened:1967,p:"#BA0C2F",s:"#FFFFFF",unique:["Cardinals mascot — one of CFB's common names","Located in Muncie, Indiana","The MAC — often called the Cradle of Coaches"]},
+  {abbr:"CMU",name:"Central Michigan Chippewas",conf:"MAC",state:"MI",stadium:"Kelly/Shorts Stadium",city:"Mount Pleasant, MI",cap:30199,opened:1972,p:"#6A0032",s:"#FFC82E",unique:["Fire Up Chips chant","Named for Chippewa people","MAC stalwart program"]},
+  {abbr:"EMU",name:"Eastern Michigan Eagles",conf:"MAC",state:"MI",stadium:"Rynearson Stadium",city:"Ypsilanti, MI",cap:22227,opened:1969,p:"#006633",s:"#FFFFFF",unique:["Eagles mascot","Located near Ann Arbor","MAC program building momentum"]},
+  {abbr:"WMU",name:"Western Michigan Broncos",conf:"MAC",state:"MI",stadium:"Waldo Stadium",city:"Kalamazoo, MI",cap:30127,opened:1939,p:"#6C4023",s:"#CDB87D",unique:["Undefeated regular season in 2016 — MAC's most memorable year","The Broncos — strong MAC program","Kalamazoo — unique American city"]},
+  {abbr:"NMU",name:"Northern Illinois Huskies",conf:"MAC",state:"IL",stadium:"Huskie Stadium",city:"DeKalb, IL",cap:23468,opened:1965,p:"#CC0000",s:"#000000",unique:["2012 Orange Bowl berth — MAC's greatest moment","Huskie mascot","Located in DeKalb, IL"]},
+  {abbr:"OHIO",name:"Ohio Bobcats",conf:"MAC",state:"OH",stadium:"Peden Stadium",city:"Athens, OH",cap:24000,opened:1929,p:"#00694E",s:"#C9982B",unique:["Not to be confused with Ohio State","Bobcat mascot","Beautiful Athens, Ohio setting"]},
+  {abbr:"MIA-OH",name:"Miami (OH) RedHawks",conf:"MAC",state:"OH",stadium:"Yager Stadium",city:"Oxford, OH",cap:24286,opened:1983,p:"#B61E2E",s:"#FFFFFF",unique:["Cradle of Coaches — Bo Schembechler, Woody Hayes, Ara Parseghian all from here","RedHawks mascot — changed from Redskins","Oxford, Ohio — classic college town"]},
+  {abbr:"KENT",name:"Kent State Golden Flashes",conf:"MAC",state:"OH",stadium:"Dix Stadium",city:"Kent, OH",cap:25319,opened:1969,p:"#002664",s:"#EAAA00",unique:["Golden Flashes mascot","May 4 Memorial on campus","Located in Kent, Ohio"]},
+  {abbr:"AKR",name:"Akron Zips",conf:"MAC",state:"OH",stadium:"InfoCision Stadium-Summa Field",city:"Akron, OH",cap:30000,opened:2009,p:"#00285E",s:"#A89968",unique:["Zippy the kangaroo mascot — unique in CFB","LeBron James' hometown of Akron","Rubber City — Akron's industrial heritage"]},
+  {abbr:"BUFF",name:"Buffalo Bulls",conf:"MAC",state:"NY",stadium:"UB Stadium",city:"Amherst, NY",cap:29226,opened:1993,p:"#005BBB",s:"#FFFFFF",unique:["Located in Buffalo — Bills and Sabres country","The Bull mascot","Growing program in the MAC"]},
+  {abbr:"BOWL",name:"Bowling Green Falcons",conf:"MAC",state:"OH",stadium:"Doyt Perry Stadium",city:"Bowling Green, OH",cap:24000,opened:1966,p:"#4F2D1F",s:"#FF6600",unique:["Freddie the Falcon mascot","Orange and brown colors","Strong MAC tradition"]},
+  {abbr:"TOL",name:"Toledo Rockets",conf:"MAC",state:"OH",stadium:"Glass Bowl",city:"Toledo, OH",cap:26038,opened:1937,p:"#15397F",s:"#FFCB05",unique:["The Glass Bowl — one of CFB's oldest stadiums","Midnight Blue and Gold","Located in the Glass City"]},
+  // CUSA
+  {abbr:"FIU",name:"FIU Panthers",conf:"CUSA",state:"FL",stadium:"FIU Stadium",city:"Miami, FL",cap:20000,opened:1995,p:"#081E3F",s:"#B6862C",unique:["Located in Miami — recruiting hotbed","Panther mascot","One of the newer FBS programs"]},
+  {abbr:"FAU",name:"FAU Owls",conf:"CUSA",state:"FL",stadium:"FAU Stadium",city:"Boca Raton, FL",cap:30000,opened:2011,p:"#003366",s:"#CC0000",unique:["Lane Kiffin built the program","Located in Boca Raton","The Owls of CUSA"]},
+  {abbr:"NMSU",name:"New Mexico State Aggies",conf:"CUSA",state:"NM",stadium:"Aggie Memorial Stadium",city:"Las Cruces, NM",cap:30343,opened:1978,p:"#861F41",s:"#FFFFFF",unique:["The Aggies of Las Cruces","Strong academic connection to agriculture","Rivalry with New Mexico"]},
+  {abbr:"MTSU",name:"Middle Tennessee Blue Raiders",conf:"CUSA",state:"TN",stadium:"Floyd Stadium",city:"Murfreesboro, TN",cap:35000,opened:1933,p:"#0066CC",s:"#FFFFFF",unique:["Blue Raiders mascot","Located in Murfreesboro, TN","Multiple CUSA titles"]},
+  {abbr:"UAB",name:"UAB Blazers",conf:"CUSA",state:"AL",stadium:"Protective Stadium",city:"Birmingham, AL",cap:47100,opened:2021,p:"#1E6B52",s:"#F4C300",unique:["Program was shut down then revived in 2017 — one of CFB's great comeback stories","Protective Stadium — new venue","Located in Birmingham"]},
+  {abbr:"CHAR",name:"Charlotte 49ers",conf:"CUSA",state:"NC",stadium:"Jerry Richardson Stadium",city:"Charlotte, NC",cap:15314,opened:2013,p:"#005035",s:"#B9975B",unique:["Named for the 49ers gold rush in Charlotte","One of the newest FBS programs","Located in the largest city in NC"]},
+  {abbr:"WKU",name:"Western Kentucky Hilltoppers",conf:"CUSA",state:"KY",stadium:"L.T. Smith Stadium",city:"Bowling Green, KY",cap:22113,opened:1968,p:"#B01E24",s:"#FFFFFF",unique:["Big Red — the blob mascot is one of CFB's most unique","Located on a hill — The Hill","Multiple CUSA championships"]},
+  {abbr:"UTSA",name:"UTSA Roadrunners",conf:"CUSA",state:"TX",stadium:"Alamodome",city:"San Antonio, TX",cap:65000,opened:1993,p:"#F15A22",s:"#002A5C",unique:["Roadrunner mascot","Located in San Antonio — near the Alamo","One of the newer FBS programs"]},
+  {abbr:"RICE",name:"Rice Owls",conf:"CUSA",state:"TX",stadium:"Rice Stadium",city:"Houston, TX",cap:47000,opened:1950,p:"#002469",s:"#CEB888",unique:["Private university with strong academics","Rice Stadium is a historic venue","Located in Houston — fourth largest city"]},
+  {abbr:"NTX",name:"North Texas Mean Green",conf:"CUSA",state:"TX",stadium:"Apogee Stadium",city:"Denton, TX",cap:30850,opened:2011,p:"#00853E",s:"#FFFFFF",unique:["The only stadium in FBS that uses wind power","Mean Green — unique team nickname","Located in Denton, TX"]},
+  {abbr:"UTEP",name:"UTEP Miners",conf:"CUSA",state:"TX",stadium:"Sun Bowl Stadium",city:"El Paso, TX",cap:51500,opened:1963,p:"#FF8200",s:"#003594",unique:["Sun Bowl game association","Located on the US-Mexico border","The Miners — El Paso mining heritage"]},
+  {abbr:"SAM",name:"Sam Houston Bearkats",conf:"CUSA",state:"TX",stadium:"Bowers Stadium",city:"Huntsville, TX",cap:14000,opened:1981,p:"#F05A22",s:"#FFFFFF",unique:["Bearkat mascot — a Louisiana wildcat","FCS dynasty — multiple national titles","Located in Huntsville, TX — Sam Houston country"]},
+  {abbr:"JSU",name:"Jacksonville State Gamecocks",conf:"CUSA",state:"AL",stadium:"Burgess-Snow Field at JSU Stadium",city:"Jacksonville, AL",cap:24000,opened:1970,p:"#CC0000",s:"#FFFFFF",unique:["Strong FCS roots","Multiple OVC championships","Located in northeastern Alabama"]},
+  // Independents
+  {abbr:"ND",name:"Notre Dame Fighting Irish",conf:"Ind",state:"IN",stadium:"Notre Dame Stadium",city:"Notre Dame, IN",cap:77622,opened:1930,p:"#0C2340",s:"#C99700",unique:["Touchdown Jesus — giant mosaic visible from the stadium","The most famous independent in college football","Win one for the Gipper — Knute Rockne legacy","Golden Dome on campus is iconic"]},
+  {abbr:"ARMY",name:"Army Black Knights",conf:"Ind",state:"NY",stadium:"Michie Stadium",city:"West Point, NY",cap:38000,opened:1924,p:"#000000",s:"#D4BF80",unique:["West Point — America's military academy","Army-Navy Game is the most patriotic in sports","Every player serves in the Army after graduation","Michie Stadium overlooks the Hudson River"]},
+  {abbr:"LIB",name:"Liberty Flames",conf:"Ind",state:"VA",stadium:"Williams Stadium",city:"Lynchburg, VA",cap:25000,opened:1989,p:"#002868",s:"#C41230",unique:["Private Christian university founded by Jerry Falwell","Rapidly growing football program","Located in Lynchburg, VA"]},
+  {abbr:"NM",name:"New Mexico Lobos",conf:"MWC",state:"NM",stadium:"University Stadium",city:"Albuquerque, NM",cap:39224,opened:1960,p:"#BA0C2F",s:"#999999",unique:["The Pit — one of CFB's famous venues for basketball crossover","Lobo mascot","Located in the Duke City"]},
+  {abbr:"HAW",name:"Hawaii Warriors",conf:"MWC",state:"HI",stadium:"Clarence T.C. Ching Athletics Complex",city:"Honolulu, HI",cap:9000,opened:1975,p:"#024731",s:"#000000",unique:["Every opponent gets a road trip to paradise","Unique home field advantage — travel burden for opponents","The Rainbow Warriors — unique uniform tradition"]},
+];
+
+let selectedState = null;
+let selectedConf = "ALL";
+
+function espn(school){
+  const map = {
+    "ALA":"alabama","AUB":"auburn","UGA":"georgia","FLA":"florida","LSU":"lsu",
+    "TENN":"tennessee","ARK":"arkansas","MSU":"mississippi-state","OLE":"ole-miss",
+    "MIZZ":"missouri","SC":"south-carolina","VANDY":"vanderbilt","KY":"kentucky",
+    "MICH":"michigan","OSU":"ohio-state","PSU":"penn-state","WISC":"wisconsin",
+    "IOWA":"iowa","MINN":"minnesota","NEB":"nebraska","NW":"northwestern",
+    "ILL":"illinois","IND":"indiana","PUR":"purdue","RUTG":"rutgers",
+    "MARY":"maryland","MICH-ST":"michigan-state","UCLA":"ucla","USC":"usc",
+    "WASH":"washington","WSU":"washington-state","ORE":"oregon","OST":"oregon-state",
+    "TEX":"texas","OU":"oklahoma","TCU":"tcu","KSTATE":"kansas-state",
+    "KAN":"kansas","IOWA-ST":"iowa-state","WVU":"west-virginia","OSU-CF":"oklahoma-state",
+    "BYU":"byu","UCF":"ucf","HOU":"houston","CIN":"cincinnati",
+    "ARIZ":"arizona","ASU":"arizona-state","COL":"colorado","UTAH":"utah",
+    "TTU":"texas-tech","BAY":"baylor",
+    "CLEM":"clemson","FSU":"florida-state","MIAMI":"miami","NCST":"nc-state",
+    "UNC":"north-carolina","DUKE":"duke","VT":"virginia-tech","UVA":"virginia",
+    "PITT":"pittsburgh","SYR":"syracuse","LOU":"louisville","GT":"georgia-tech",
+    "BC":"boston-college","WAKE":"wake-forest","CAL":"california","STAN":"stanford",
+    "SMU":"smu",
+    "MEM":"memphis","TULSA":"tulsa","NAVY":"navy","TULANE":"tulane",
+    "ECU":"east-carolina","USF":"south-florida","UCONN":"uconn","TEMP":"temple",
+    "SDSU":"san-diego-state","BSU":"boise-state","NV":"nevada","UNLV":"unlv",
+    "FRES":"fresno-state","SJSU":"san-jose-state","AFA":"air-force","WYO":"wyoming",
+    "CSU":"colorado-state","UTAH-ST":"utah-state","NM":"new-mexico","HAW":"hawaii",
+    "APP":"appalachian-state","GAST":"georgia-state","GASOU":"georgia-southern",
+    "TROY":"troy","USA":"south-alabama","ARST":"arkansas-state","ULAF":"louisiana",
+    "TXST":"texas-state","JKST":"jackson-state",
+    "BALL":"ball-state","CMU":"central-michigan","EMU":"eastern-michigan",
+    "WMU":"western-michigan","NMU":"northern-illinois","OHIO":"ohio",
+    "MIA-OH":"miami-oh","KENT":"kent-state","AKR":"akron","BUFF":"buffalo",
+    "BOWL":"bowling-green","TOL":"toledo",
+    "FIU":"fiu","FAU":"fau","NMSU":"new-mexico-state","MTSU":"middle-tennessee",
+    "UAB":"uab","CHAR":"charlotte","WKU":"western-kentucky","UTSA":"utsa",
+    "RICE":"rice","NTX":"north-texas","UTEP":"utep","SAM":"sam-houston",
+    "JSU":"jacksonville-state",
+    "ND":"notre-dame","ARMY":"army","LIB":"liberty"
+  };
+  return map[school]||school.toLowerCase();
+}
+
+function clickState(state){
+  selectedState = state;
+  document.querySelectorAll(".state-path").forEach(p=>{
+    p.style.fill = p.dataset.state===state ? "rgba(232,208,128,0.25)" : "";
+  });
+  renderTeams();
+}
+
+function setConf(conf, btn){
+  selectedConf = conf;
+  document.querySelectorAll(".conf-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  renderTeams();
+}
+
+function renderTeams(){
+  let teams = TEAMS;
+  if(selectedConf !== "ALL") teams = teams.filter(t=>t.conf===selectedConf);
+  if(selectedState) teams = teams.filter(t=>t.state===selectedState);
+
+  const header = document.getElementById("results-header");
+  const grid = document.getElementById("teams-grid");
+
+  if(!selectedState && selectedConf==="ALL"){
+    header.innerHTML = "Click a state to explore stadiums";
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">&#9650; Select a state on the map above</div>`;
+    return;
+  }
+
+  const stateNames = {AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",CT:"Connecticut",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming"};
+
+  const label = selectedState ? `<span>${stateNames[selectedState]||selectedState}</span>${selectedConf!=="ALL"?" · "+selectedConf:""}` : `<span>${selectedConf}</span>`;
+  header.innerHTML = label + ` — ${teams.length} Team${teams.length!==1?"s":""}`;
+
+  if(!teams.length){
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">No FBS teams found for this selection.</div>`;
+    return;
+  }
+
+  grid.innerHTML = teams.map(t=>`
+    <div class="tcard" style="border-color:${t.p}44" onmouseover="this.style.borderColor='${t.p}'" onmouseout="this.style.borderColor='${t.p}44'" onclick="openModal('${t.abbr}')">
+      <div class="conf-badge">${t.conf}</div>
+      <img src="https://a.espncdn.com/i/teamlogos/ncaa/500/${espn(t.abbr)}.png" alt="${t.abbr}" onerror="this.style.display='none'" style="width:40px;height:40px;object-fit:contain">
+      <div class="card-abbr" style="color:${t.p}">${t.abbr}</div>
+      <div class="tname">${t.name}</div>
+      <div class="tstadium">${t.stadium}</div>
+    </div>`).join("");
+
+  // Highlight states that have teams
+  const statesWithTeams = [...new Set(TEAMS.filter(t=>selectedConf==="ALL"||t.conf===selectedConf).map(t=>t.state))];
+  document.querySelectorAll(".state-path").forEach(p=>{
+    if(p.dataset.state===selectedState) p.style.fill="rgba(232,208,128,0.25)";
+    else if(statesWithTeams.includes(p.dataset.state)) p.style.fill="#2a2420";
+    else p.style.fill="";
+  });
+}
+
+function openModal(abbr){
+  const t = TEAMS.find(x=>x.abbr===abbr);
+  if(!t)return;
+  document.getElementById("m-conf").textContent = t.conf;
+  document.getElementById("m-name").textContent = t.name;
+  document.getElementById("m-name").style.color = t.p;
+  document.getElementById("m-stadium").textContent = t.stadium;
+  document.getElementById("m-loc").textContent = "📍 "+t.city;
+  document.getElementById("m-facts").innerHTML = [
+    ["Capacity",t.cap.toLocaleString()],
+    ["Opened",t.opened],
+    ["Conference",t.conf],
+    ["State",t.state]
+  ].map(([l,v])=>`<div class="mf"><div class="mf-l">${l}</div><div class="mf-v">${v}</div></div>`).join("");
+  document.getElementById("m-tags").innerHTML = t.unique.map(u=>`<div class="m-tag">${u}</div>`).join("");
+  document.getElementById("ov").classList.add("open");
+}
+function closeModal(){document.getElementById("ov").classList.remove("open");}
+document.getElementById("ov").addEventListener("click",e=>{if(e.target.id==="ov")closeModal();});
+
+// Highlight states with teams on load
+window.onload = function(){
+  const statesWithTeams = [...new Set(TEAMS.map(t=>t.state))];
+  document.querySelectorAll(".state-path").forEach(p=>{
+    if(statesWithTeams.includes(p.dataset.state)) p.style.fill="#2a2420";
+  });
+};
+
+</script>
+</body>
+</html>

@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NFL — Stadium Index</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0f0e0c;font-family:"DM Sans",sans-serif;color:#e8e0d0}
+#home,#rankings-page,#compare-page,#visited-page{display:none}
+#sp{display:none}
+
+nav{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 2.5rem;border-bottom:1px solid rgba(232,220,180,0.1);background:#0f0e0c;position:sticky;top:0;z-index:50}
+.nav-logo{font-family:"Playfair Display",serif;font-size:1.25rem;letter-spacing:0.02em;color:#e8d080;font-style:italic}
+.nav-links{display:flex;gap:2.5rem;list-style:none}
+.nav-links a{color:rgba(232,224,208,0.4);text-decoration:none;font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;transition:color 0.2s;font-weight:500;cursor:pointer}
+.nav-links a:hover,.nav-links a.active{color:#e8d080}
+
+.hero{padding:3.5rem 2.5rem 3rem;border-bottom:1px solid rgba(232,220,180,0.08)}
+.hero-eye{font-size:0.65rem;letter-spacing:0.25em;text-transform:uppercase;color:#e8d080;margin-bottom:1rem;font-family:"DM Mono",monospace}
+.hero-title{font-family:"Playfair Display",serif;font-size:clamp(2.8rem,5vw,4.5rem);color:#f0ead8;line-height:1.05;margin-bottom:1rem;font-weight:900}
+.hero-title span{color:#e8d080;font-style:italic}
+.hero-sub{font-size:0.9rem;color:rgba(232,224,208,0.45);margin-bottom:2rem;line-height:1.7;max-width:420px}
+.search-box{max-width:380px;background:rgba(232,220,180,0.05);border:1px solid rgba(232,220,180,0.15);border-radius:2px;display:flex;align-items:center;padding:0 1rem}
+.search-box input{flex:1;background:none;border:none;outline:none;color:#e8e0d0;font-family:"DM Sans",sans-serif;font-size:0.84rem;padding:0.75rem 0.4rem}
+.search-box input::placeholder{color:rgba(232,224,208,0.22)}
+
+.content{padding:0 2.5rem 3rem}
+.div-head{display:flex;align-items:center;gap:1rem;padding:2rem 0 1rem}
+.div-head h2{font-family:"DM Mono",monospace;font-size:0.7rem;letter-spacing:0.2em;color:rgba(232,220,180,0.3);white-space:nowrap;text-transform:uppercase}
+.div-line{flex:1;height:1px;background:rgba(232,220,180,0.08)}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+
+.tcard{background:rgba(232,220,180,0.03);border-radius:3px;padding:1.1rem 0.7rem 0.9rem;display:flex;flex-direction:column;align-items:center;gap:0.4rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(232,220,180,0.07);position:relative}
+.tcard:hover{background:rgba(232,220,180,0.07);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.4)}
+.lg-badge{position:absolute;top:6px;right:7px;font-size:0.5rem;letter-spacing:0.1em;color:rgba(232,220,180,0.22);font-family:"DM Mono",monospace}
+.tcard img{width:42px;height:42px;object-fit:contain}
+.card-abbr{font-family:"Playfair Display",serif;font-size:1.05rem;font-weight:700}
+.tname{font-size:0.62rem;color:rgba(232,224,208,0.38);text-align:center;line-height:1.3}
+.tstadium{font-size:0.55rem;color:rgba(232,224,208,0.18);text-align:center;font-family:"DM Mono",monospace}
+
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:999;align-items:center;justify-content:center;padding:1rem}
+.overlay.open{display:flex}
+.modal{background:#141210;border:1px solid rgba(232,220,180,0.12);border-radius:3px;width:480px;max-width:100%;padding:2.2rem}
+.m-abbr{font-family:"Playfair Display",serif;font-size:3.2rem;line-height:1;font-weight:900;font-style:italic}
+.m-team{font-size:0.7rem;color:rgba(232,224,208,0.35);margin-bottom:1.2rem;letter-spacing:0.15em;text-transform:uppercase;font-family:"DM Mono",monospace}
+.m-sname{font-size:1.5rem;font-weight:700;color:#f0ead8;margin-bottom:0.3rem;font-family:"Playfair Display",serif}
+.m-loc{font-size:0.72rem;color:rgba(232,224,208,0.3);margin-bottom:1.4rem;font-family:"DM Mono",monospace}
+.m-facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem}
+.mf{background:rgba(232,220,180,0.04);border:1px solid rgba(232,220,180,0.08);border-radius:2px;padding:0.85rem 1rem}
+.mf-l{font-size:0.55rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(232,224,208,0.25);margin-bottom:0.3rem;font-family:"DM Mono",monospace}
+.mf-v{font-size:0.95rem;font-weight:500;color:#e8e0d0}
+.m-btns{display:flex;gap:0.6rem}
+.m-btn-exp{flex:1;background:rgba(232,220,180,0.06);border-radius:2px;font-family:"DM Sans",sans-serif;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.8rem;cursor:pointer;transition:background 0.2s;font-weight:500}
+.m-btn-exp:hover{background:rgba(232,220,180,0.12)}
+.m-btn-back{background:none;border:1px solid rgba(232,220,180,0.1);color:rgba(232,224,208,0.4);font-family:"DM Sans",sans-serif;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.8rem 1.2rem;border-radius:2px;cursor:pointer}
+
+#sp{min-height:100vh}
+.sp-nav{display:flex;align-items:center;padding:1.2rem 2.5rem;border-bottom:1px solid var(--sbr);background:var(--sbd)}
+.sp-logo{font-family:"Playfair Display",serif;font-size:1.25rem;color:var(--sa);flex:1;font-style:italic}
+.sp-back{font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--sm);cursor:pointer;font-family:"DM Mono",monospace}
+.sp-back:hover{color:var(--sa)}
+.sp-hero{padding:3rem 2.5rem 2.5rem;border-bottom:1px solid var(--sbr);background:var(--shb)}
+.sp-top{display:flex;align-items:flex-end;gap:1.6rem;margin-bottom:2rem}
+.sp-big{font-family:"Playfair Display",serif;font-size:5rem;color:var(--sa);line-height:1;font-weight:900;font-style:italic}
+.sp-tt h1{font-family:"Playfair Display",serif;font-size:2.4rem;color:var(--sh);line-height:1.05;font-weight:900}
+.sp-sname{font-size:1rem;color:var(--sa);margin-top:0.4rem;font-weight:500}
+.sp-loc{font-size:0.68rem;color:var(--sm);margin-top:0.2rem;font-family:"DM Mono",monospace}
+.sp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.sp-stat{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1rem 1.2rem}
+.sp-sl{font-size:0.55rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--sm);margin-bottom:0.35rem;font-family:"DM Mono",monospace}
+.sp-sv{font-size:1.05rem;font-weight:500;color:var(--sh)}
+.sp-sv.ac{color:var(--sa)}
+.sp-tabs{display:flex;padding:0 2.5rem;border-bottom:1px solid var(--sbr);background:var(--sbd);overflow-x:auto}
+.sp-tab{font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--sm);padding:1rem 1.1rem;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;font-family:"DM Mono",monospace;white-space:nowrap}
+.sp-tab:hover{color:var(--st)}
+.sp-tab.active{color:var(--sa);border-bottom-color:var(--sa)}
+.sp-panel{display:none;padding:2.5rem 2.5rem 3.5rem}
+.sp-panel.active{display:block}
+.sp-sec{font-family:"Playfair Display",serif;font-size:1.3rem;color:var(--sh);margin-bottom:1.4rem;margin-top:0.5rem;font-weight:700;font-style:italic}
+.sp-fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:2.5rem}
+.sp-fc{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.1rem 1.2rem}
+.sp-fl{font-size:0.55rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--sm);margin-bottom:0.4rem;font-family:"DM Mono",monospace}
+.sp-fv{font-size:0.9rem;color:var(--st);line-height:1.5}
+.dims{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:2.5rem}
+.dim{background:var(--sas);border:1px solid var(--sab);border-radius:2px;padding:1.1rem;text-align:center}
+.dn{font-family:"Playfair Display",serif;font-size:1.8rem;color:var(--sa);line-height:1;font-weight:900}
+.dl{font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--sm);margin-top:0.35rem;font-family:"DM Mono",monospace}
+.tags{display:flex;flex-wrap:wrap;gap:10px}
+.tag{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;font-size:0.75rem;color:var(--st);padding:0.5rem 0.9rem;line-height:1.5}
+.game-list{border-top:1px solid var(--sbr)}
+.gr{display:flex;align-items:center;gap:1rem;padding:1rem 0;border-bottom:1px solid var(--sbr)}
+.gd{font-size:0.65rem;color:var(--sm);width:80px;flex-shrink:0;font-family:"DM Mono",monospace}
+.gm{flex:1;font-size:0.85rem;color:var(--st)}
+.gt{font-size:0.65rem;color:var(--sm);font-family:"DM Mono",monospace}
+.gp{font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.22rem 0.55rem;border-radius:2px;flex-shrink:0;font-family:"DM Mono",monospace}
+.gph{background:var(--sas);color:var(--sa)}
+.gpa{background:var(--sc);color:var(--sm)}
+.lc{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.5rem 1.6rem;margin-bottom:12px}
+.ly{font-size:0.6rem;color:var(--sa);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.5rem;font-family:"DM Mono",monospace}
+.lt{font-size:1rem;font-weight:700;color:var(--sh);margin-bottom:0.5rem;font-family:"Playfair Display",serif}
+.ld{font-size:0.82rem;color:var(--sm);line-height:1.7}
+.fc{display:flex;gap:1.3rem;background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.4rem 1.5rem;margin-bottom:12px}
+.fi{font-size:1.8rem;flex-shrink:0;margin-top:0.1rem}
+.fn{font-size:0.95rem;font-weight:700;color:var(--sh);margin-bottom:0.4rem;font-family:"Playfair Display",serif}
+.fd{font-size:0.82rem;color:var(--sm);line-height:1.7}
+
+.rbox{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:2rem;text-align:center;margin-bottom:1.5rem}
+.rb{font-family:"Playfair Display",serif;font-size:5rem;color:var(--sa);line-height:1;font-weight:900;font-style:italic}
+.rs{font-size:0.68rem;color:var(--sm);margin-top:0.2rem;font-family:"DM Mono",monospace}
+.rbars{margin:1.5rem 0 0;text-align:left}
+.rr{display:flex;align-items:center;gap:1rem;margin-bottom:0.8rem}
+.rl{font-size:0.7rem;color:var(--sm);width:130px;flex-shrink:0}
+.rbg{flex:1;background:var(--sbr);border-radius:1px;height:4px}
+.rbf{height:4px;border-radius:1px;background:var(--sa)}
+.rv-num{font-size:0.7rem;color:var(--sa);width:30px;text-align:right;font-family:"DM Mono",monospace}
+.vote-form{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.5rem;margin-top:1.5rem}
+.score-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:0.5rem}
+.score-btn{width:36px;height:36px;border-radius:2px;border:1px solid var(--sbr);background:transparent;color:var(--st);font-family:"DM Sans",sans-serif;font-size:0.8rem;cursor:pointer;transition:all 0.15s}
+.score-btn.sel{background:var(--sa);color:var(--sbt);border-color:var(--sa)}
+.vbtn{border:none;font-family:"DM Sans",sans-serif;font-size:0.75rem;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;padding:0.85rem 2rem;border-radius:2px;cursor:pointer;margin-top:1.2rem;background:var(--sa);color:var(--sbt);transition:opacity 0.2s;display:inline-block}
+.vbtn:hover{opacity:0.85}
+.vmsg{font-size:0.75rem;color:var(--sa);margin-top:0.8rem;display:none;font-family:"DM Mono",monospace}
+
+.rv-item{padding:1.2rem 0;border-bottom:1px solid var(--sbr)}
+.rv-item:last-child{border-bottom:none}
+.rv-score{font-family:"Playfair Display",serif;font-size:1.2rem;color:var(--sa);font-weight:900;font-style:italic}
+.rv-text{font-size:0.82rem;color:var(--sm);line-height:1.65;margin-top:0.3rem}
+.rv-date{font-size:0.6rem;color:rgba(232,224,208,0.22);font-family:"DM Mono",monospace;margin-top:0.3rem}
+.rv-textarea{width:100%;background:var(--sc);border:1px solid var(--sbr);border-radius:2px;color:var(--st);font-family:"DM Sans",sans-serif;font-size:0.84rem;padding:0.85rem 1rem;resize:vertical;min-height:90px;outline:none;margin-top:0.8rem}
+
+.rank-filter{background:rgba(232,220,180,0.04);border:1px solid rgba(232,220,180,0.12);border-radius:2px;color:rgba(232,224,208,0.5);font-family:"DM Mono",monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.45rem 0.9rem;cursor:pointer;transition:all 0.2s}
+.rank-filter.active{background:rgba(232,208,128,0.12);border-color:#e8d080;color:#e8d080}
+.rank-row{display:flex;align-items:center;gap:1.2rem;padding:1rem 1.2rem;background:rgba(232,220,180,0.03);border:1px solid rgba(232,220,180,0.07);border-radius:2px;margin-bottom:8px;cursor:pointer;transition:all 0.18s}
+.rank-row:hover{background:rgba(232,220,180,0.07);transform:translateX(4px)}
+.rank-num{font-family:"Playfair Display",serif;font-size:1.4rem;color:rgba(232,220,180,0.2);width:36px;flex-shrink:0;font-weight:900;font-style:italic}
+.rank-logo{width:36px;height:36px;object-fit:contain;flex-shrink:0}
+.rank-name{font-size:0.88rem;font-weight:500;color:#f0ead8;margin-bottom:0.18rem}
+.rank-stadium{font-size:0.68rem;color:rgba(232,224,208,0.35);font-family:"DM Mono",monospace}
+.rank-val{font-family:"Playfair Display",serif;font-size:1.5rem;font-weight:900;font-style:italic}
+.rank-sub{font-size:0.6rem;color:rgba(232,224,208,0.3);font-family:"DM Mono",monospace;text-align:right;margin-top:0.1rem}
+
+.cmp-row{display:grid;grid-template-columns:1fr 1fr}
+.cmp-cell{padding:0.9rem 1.2rem;border-bottom:1px solid rgba(232,220,180,0.06)}
+.cmp-lbl{font-size:0.55rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(232,224,208,0.28);margin-bottom:0.3rem;font-family:"DM Mono",monospace}
+.cmp-val{font-size:0.9rem;color:#e8e0d0;font-weight:500}
+.cmp-win{color:#e8d080}
+
+.vis-card{background:rgba(232,220,180,0.03);border:1px solid rgba(232,220,180,0.07);border-radius:3px;padding:1rem 0.7rem;display:flex;flex-direction:column;align-items:center;gap:0.4rem;cursor:pointer;transition:all 0.2s;position:relative}
+.vis-card.been{border-color:rgba(232,208,128,0.4);background:rgba(232,208,128,0.07)}
+.vis-card:hover{transform:translateY(-2px)}
+.vis-check{position:absolute;top:6px;left:7px;font-size:0.7rem;color:#e8d080;opacity:0}
+.vis-card.been .vis-check{opacity:1}
+
+.page-head{margin-bottom:2rem}
+.page-eye{font-family:"DM Mono",monospace;font-size:0.65rem;letter-spacing:0.25em;text-transform:uppercase;color:#e8d080;margin-bottom:0.6rem}
+.page-title{font-family:"Playfair Display",serif;font-size:2.8rem;color:#f5efe0;font-weight:900;margin-bottom:0.5rem}
+.page-sub{font-size:0.85rem;color:rgba(232,224,208,0.4);line-height:1.6}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Stadium <span style="color:#e8d080">Index</span> &#8212; NFL</div>
+  <ul class="nav-links">
+    <li><a onclick="showPage('home')" id="nav-home" class="active">Stadiums</a></li>
+    <li><a onclick="showPage('rankings')" id="nav-rankings">Rankings</a></li>
+    <li><a onclick="showPage('compare')" id="nav-compare">Compare</a></li>
+    <li><a onclick="showPage('visited')" id="nav-visited">My Parks</a></li>
+  </ul>
+</nav>
+
+<div id="home">
+  <div class="hero">
+    <div class="hero-eye">All 32 NFL Stadiums</div>
+    <h1 class="hero-title">Every Stadium.<br><span>Every Story.</span></h1>
+    <p class="hero-sub">Explore every NFL stadium across all 32 franchises.</p>
+    <div class="search-box"><input id="srch" type="text" placeholder="Search a team or stadium..."></div>
+  </div>
+  <div class="content" id="divs"></div>
+</div>
+
+<div id="rankings-page" style="padding:2.5rem;min-height:100vh">
+  <div style="max-width:900px;margin:0 auto">
+    <div class="page-head">
+      <div class="page-eye">Ballpark Index</div>
+      <div class="page-title">Stadium Rankings</div>
+      <div class="page-sub">Sort and filter all 30 MLB ballparks.</div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:2rem">
+      <button class="rank-filter active" onclick="setRankSort('rating',this)">Fan Rating</button>
+      <button class="rank-filter" onclick="setRankSort('cap',this)">Capacity</button>
+      <button class="rank-filter" onclick="setRankSort('oldest',this)">Oldest First</button>
+      <button class="rank-filter" onclick="setRankSort('newest',this)">Newest First</button>
+      <button class="rank-filter" onclick="setRankSort('name',this)">A&#8211;Z</button>
+      <button class="rank-filter" onclick="setRankSort('div',this)">By Division</button>
+    </div>
+    <div id="rank-list"></div>
+  </div>
+</div>
+
+<div id="compare-page" style="padding:2.5rem;min-height:100vh">
+  <div style="max-width:900px;margin:0 auto">
+    <div class="page-head">
+      <div class="page-eye">Ballpark Index</div>
+      <div class="page-title">Compare Stadiums</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem">
+      <div>
+        <div style="font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(232,224,208,0.35);margin-bottom:0.5rem;font-family:DM Mono,monospace">Stadium One</div>
+        <select id="cmp-a" onchange="renderCompare()" style="width:100%;background:#141210;border:1px solid rgba(232,220,180,0.15);border-radius:2px;color:#e8e0d0;font-family:DM Sans,sans-serif;font-size:0.85rem;padding:0.75rem 1rem;outline:none;cursor:pointer"></select>
+      </div>
+      <div>
+        <div style="font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(232,224,208,0.35);margin-bottom:0.5rem;font-family:DM Mono,monospace">Stadium Two</div>
+        <select id="cmp-b" onchange="renderCompare()" style="width:100%;background:#141210;border:1px solid rgba(232,220,180,0.15);border-radius:2px;color:#e8e0d0;font-family:DM Sans,sans-serif;font-size:0.85rem;padding:0.75rem 1rem;outline:none;cursor:pointer"></select>
+      </div>
+    </div>
+    <div id="cmp-result"></div>
+  </div>
+</div>
+
+<div id="visited-page" style="padding:2.5rem;min-height:100vh">
+  <div style="max-width:900px;margin:0 auto">
+    <div class="page-head">
+      <div class="page-eye">Ballpark Index</div>
+      <div class="page-title">My Parks</div>
+      <div class="page-sub" id="vis-sub">Track every ballpark you have visited.</div>
+    </div>
+    <div id="vis-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px"></div>
+  </div>
+</div>
+
+<div class="overlay" id="ov">
+  <div class="modal">
+    <div class="m-abbr" id="ma"></div>
+    <div class="m-team" id="mt"></div>
+    <div class="m-sname" id="ms"></div>
+    <div class="m-loc" id="ml"></div>
+    <div class="m-facts" id="mf"></div>
+    <div class="m-btns">
+      <button class="m-btn-exp" id="meb">EXPLORE THIS BALLPARK &#8594;</button>
+      <button class="m-btn-back" onclick="closeModal()">BACK</button>
+    </div>
+  </div>
+</div>
+
+<div id="sp">
+  <div class="sp-nav"><div class="sp-logo">Stadium Index &#8212; NFL</div><div class="sp-back" onclick="showPage('home')">&#8592; All Stadiums</div></div>
+  <div class="sp-hero">
+    <div class="sp-top">
+      <div class="sp-big" id="spa"></div>
+      <div class="sp-tt"><h1 id="spn"></h1><div class="sp-sname" id="sps"></div><div class="sp-loc" id="spl"></div></div>
+    </div>
+    <div class="sp-stats">
+      <div class="sp-stat"><div class="sp-sl">Opened</div><div class="sp-sv" id="spo"></div></div>
+      <div class="sp-stat"><div class="sp-sl">Capacity</div><div class="sp-sv" id="spc"></div></div>
+      <div class="sp-stat"><div class="sp-sl">Surface</div><div class="sp-sv" id="spsu"></div></div>
+      <div class="sp-stat"><div class="sp-sl">Fan Rating</div><div class="sp-sv ac" id="spr"></div></div>
+    </div>
+  </div>
+  <div class="sp-tabs" id="sp-tabs-row">
+    <div class="sp-tab active" onclick="sTab('t-ov',this)">Overview</div>
+    <div class="sp-tab" onclick="sTab('t-gm',this)">Games</div>
+    <div class="sp-tab" onclick="sTab('t-lg',this)">Legends</div>
+    <div class="sp-tab" onclick="sTab('t-fd',this)">Food Guide</div>
+    <div class="sp-tab" onclick="sTab('t-rt',this)">Fan Ratings</div>
+    <div class="sp-tab" onclick="sTab('t-rv',this)">Reviews</div>
+  </div>
+  <div id="t-ov" class="sp-panel active">
+    <div class="sp-sec">Stadium Facts</div><div class="sp-fg" id="sp-facts"></div>
+    <div class="sp-sec">Field Dimensions</div><div class="dims" id="sp-dims"></div>
+    <div class="sp-sec">What Makes It Unique</div><div class="tags" id="sp-tags"></div>
+  </div>
+  <div id="t-gm" class="sp-panel">
+    <div class="sp-sec">Upcoming Games</div>
+    <div class="game-list" id="sp-games"><div style="font-size:.82rem;padding:.8rem 0;color:var(--sm)">Loading...</div></div>
+  </div>
+  <div id="t-lg" class="sp-panel"><div class="sp-sec">Legendary Moments</div><div id="sp-legs"></div></div>
+  <div id="t-fd" class="sp-panel"><div class="sp-sec">Food Guide</div><div id="sp-food"></div></div>
+  <div id="t-rt" class="sp-panel">
+    <div class="sp-sec">Fan Ratings</div>
+    <div class="rbox">
+      <div class="rb" id="rt-score"></div>
+      <div class="rs" id="rt-count"></div>
+      <div class="rbars" id="rt-bars"></div>
+    </div>
+    <div id="rt-vote-area"></div>
+  </div>
+  <div id="t-rv" class="sp-panel">
+    <div class="sp-sec">Reviews</div>
+    <div style="background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.5rem;margin-bottom:1.5rem" id="rv-list"></div>
+    <div id="rv-form-area"></div>
+  </div>
+</div>
+
+<script>
+const TEAMS=[
+{id:1,abbr:"NE",espn:"ne",name:"New England Patriots",stadium:"Gillette Stadium",city:"Foxborough, MA",div:"AFC East",lg:"AFC",opened:2002,cap:65878,surf:"FieldTurf",rating:null,rc:"0",p:"#002244",s:"#C60C30",facts:[["Opened","2002"],["Capacity","65,878"],["Surface","FieldTurf"],["Location","Foxborough, MA"]],dims:[["65,878","Capacity"],["2002","Opened"],["FieldTurf","Surface"]],unique:["Six Super Bowl championships — most in the Brady-Belichick era","Located 30 miles south of Boston in Foxborough","Patriot Place — massive entertainment complex surrounding the stadium","One of the most successful franchises in NFL history"],legs:[{y:"2002",t:"Gillette Stadium Opens",d:"The Patriots opened their new home and immediately became a dynasty — winning three Super Bowls in the first four seasons."},{y:"2017",t:"Super Bowl LI Comeback",d:"The Patriots trailed 28-3 before the greatest comeback in Super Bowl history. Gillette Stadium celebrated with a championship parade."},{y:"2007",t:"The Undefeated Regular Season",d:"The Patriots went 16-0 in the regular season — the only team in NFL history to finish the regular season undefeated."}],food:[{i:"🦞",n:"New England Lobster Roll",d:"Genuine Maine lobster, light mayo, on a toasted split-top bun. A regional treasure served at the stadium."},{i:"🍺",n:"Sam Adams Boston Lager",d:"Boston's own poured ice cold throughout Gillette Stadium."},{i:"🍕",n:"New England Pizza",d:"Thin crust, generous toppings — local New England style pizza stands throughout the concourse."}]},
+{id:2,abbr:"BUF",espn:"buf",name:"Buffalo Bills",stadium:"Highmark Stadium",city:"Orchard Park, NY",div:"AFC East",lg:"AFC",opened:1973,cap:71608,surf:"Grass",rating:null,rc:"0",p:"#00338D",s:"#C60C30",facts:[["Opened","1973"],["Capacity","71,608"],["Surface","Grass"],["Location","Orchard Park, NY"]],dims:[["71,608","Capacity"],["1973","Opened"],["Grass","Surface"]],unique:["Bills Mafia — one of the most passionate and wild fan bases in the NFL","Notorious for folding tables — Bills Mafia tailgate tradition","Buffalo weather creates some of the most dramatic games in NFL history","Four consecutive Super Bowl appearances (1991-1994) — an unmatched streak"],legs:[{y:"1993",t:"The Comeback — Greatest in NFL History",d:"Down 32-3 at halftime to the Houston Oilers, the Bills rallied to win 41-38 in overtime — the greatest comeback in NFL history."},{y:"2023",t:"Damar Hamlin and the Community",d:"After Hamlin's cardiac arrest on Monday Night Football, the outpouring of support united the NFL and the entire country."},{y:"1991-94",t:"Four Straight Super Bowls",d:"The Bills reached four consecutive Super Bowls — an unmatched achievement in NFL history, despite losing all four."}],food:[{i:"🍗",n:"Buffalo Wings",d:"The original — invented in Buffalo at the Anchor Bar. Served with blue cheese and celery. No other food is more appropriate at a Bills game."},{i:"🍺",n:"Labatt Blue",d:"The Canadian lager beloved by Bills Mafia. Bills games and Labatt Blue are inseparable."},{i:"🥪",n:"Beef on Weck",d:"Thinly sliced roast beef on a kummelweck roll with horseradish — the other Buffalo specialty that rivals the wing."}]},
+{id:3,abbr:"MIA",espn:"mia",name:"Miami Dolphins",stadium:"Hard Rock Stadium",city:"Miami Gardens, FL",div:"AFC East",lg:"AFC",opened:1987,cap:64767,surf:"Grass",rating:null,rc:"0",p:"#008E97",s:"#FC4C02",facts:[["Opened","1987"],["Capacity","64,767"],["Surface","Grass"],["Location","Miami Gardens, FL"]],dims:[["64,767","Capacity"],["1987","Opened"],["Grass","Surface"]],unique:["Shares Hard Rock Stadium with the Miami Hurricanes and major concerts","The only NFL team to finish a perfect season — 1972 Miami Dolphins went 17-0","Located in Miami — unique international fan base","Don Shula coached here for 26 seasons"],legs:[{y:"1972",t:"The Perfect Season",d:"The 1972 Dolphins went 17-0 — the only perfect season in NFL history. Don Shula and the No-Name Defense."},{y:"1984",t:"Dan Marino's Record Season",d:"Marino threw for 5,084 yards and 48 touchdowns — records that stood for decades."},{y:"2023",t:"Tyreek Hill and the Air Raid",d:"Hill and Tua Tagovailoa set multiple receiving records in a single game — the most explosive offense in modern Dolphins history."}],food:[{i:"🌮",n:"Cuban Sandwich",d:"Miami's most famous export — slow-roasted pork, ham, Swiss, pickles, mustard on a pressed Cuban roll."},{i:"🍹",n:"Tropical Cocktails",d:"Miami-style frozen cocktails and tropical drinks — unique to the Dolphins game day experience."},{i:"🥑",n:"Ceviche and Latin Bites",d:"Fresh ceviche and Latin American snacks reflecting Miami's incredible culinary diversity."}]},
+{id:4,abbr:"NYJ",espn:"nyj",name:"New York Jets",stadium:"MetLife Stadium",city:"East Rutherford, NJ",div:"AFC East",lg:"AFC",opened:2010,cap:82500,surf:"FieldTurf",rating:null,rc:"0",p:"#125740",s:"#FFFFFF",facts:[["Opened","2010"],["Capacity","82,500"],["Surface","FieldTurf"],["Shared","With NY Giants"]],dims:[["82,500","Capacity"],["2010","Opened"],["FieldTurf","Surface"]],unique:["Shares MetLife Stadium with the New York Giants","One of the largest stadiums in the NFL at 82,500 seats","Hosted Super Bowl XLVIII in 2014 — the first outdoor cold-weather Super Bowl","Last Super Bowl win was in Super Bowl III — Joe Namath's guarantee"],legs:[{y:"1969",t:"Joe Namath Guarantees a Super Bowl Win",d:"Namath guaranteed victory over the heavily favored Baltimore Colts — and delivered in Super Bowl III."},{y:"2014",t:"Super Bowl XLVIII — Seattle Dominates",d:"MetLife hosted the Super Bowl in frigid New Jersey — Seattle crushed Denver 43-8."},{y:"2023",t:"Aaron Rodgers — Four Plays",d:"Rodgers tore his Achilles on the fourth play of his Jets debut — one of the most dramatic injuries in NFL history."}],food:[{i:"🌭",n:"New York Style Hot Dog",d:"A classic NYC-style dirty water dog with yellow mustard and sauerkraut."},{i:"🍕",n:"NY-Style Pizza",d:"Giant foldable New York slices — served throughout MetLife Stadium."},{i:"🥩",n:"Jersey Pork Roll",d:"Taylor Ham pork roll on a kaiser roll — a New Jersey institution."}]},
+{id:5,abbr:"BAL",espn:"bal",name:"Baltimore Ravens",stadium:"M&T Bank Stadium",city:"Baltimore, MD",div:"AFC North",lg:"AFC",opened:1998,cap:71008,surf:"FieldTurf",rating:null,rc:"0",p:"#241773",s:"#9E7C0C",facts:[["Opened","1998"],["Capacity","71,008"],["Surface","FieldTurf"],["Location","Baltimore, MD"]],dims:[["71,008","Capacity"],["1998","Opened"],["FieldTurf","Surface"]],unique:["Named after Edgar Allan Poe's famous poem — The Raven","Two Super Bowl championships (2001, 2013)","Located in downtown Baltimore near Camden Yards","Ray Lewis's pregame dance is one of the most iconic entrances in NFL history"],legs:[{y:"2001",t:"Super Bowl XXXV — Ray Lewis MVP",d:"Ray Lewis was named Super Bowl MVP as the Ravens defense dominated. One of the greatest defensive performances in championship history."},{y:"2013",t:"Super Bowl XLVII — Lights Out",d:"The Ravens defeated the 49ers after a 34-minute power outage — one of the most dramatic Super Bowls ever played."},{y:"2019",t:"Lamar Jackson MVP Season",d:"Jackson won the MVP unanimously with one of the most dynamic seasons in NFL history — 36 TDs and 7 rushing TDs."}],food:[{i:"🦀",n:"Maryland Blue Crab",d:"Steamed blue crabs with Old Bay seasoning — the definitive Maryland food experience at M&T Bank Stadium."},{i:"🌭",n:"Boog's BBQ",d:"The legendary Camden Yards pit beef stand also has a presence at Ravens games."},{i:"🍺",n:"National Bohemian (Natty Boh)",d:"The official beer of Baltimore — a Ravens game staple."}]},
+{id:6,abbr:"CLE",espn:"cle",name:"Cleveland Browns",stadium:"Huntington Bank Field",city:"Cleveland, OH",div:"AFC North",lg:"AFC",opened:1999,cap:67431,surf:"Grass",rating:null,rc:"0",p:"#311D00",s:"#FF3C00",facts:[["Opened","1999"],["Capacity","67,431"],["Surface","Grass"],["Location","Cleveland, OH"]],dims:[["67,431","Capacity"],["1999","Opened"],["Grass","Surface"]],unique:["The Dawg Pound — one of the most notorious and passionate sections in the NFL","Dog masks and bones are standard Browns fan attire","Located on the shores of Lake Erie with stunning views","No Super Bowl appearances — the longest drought in NFL history"],legs:[{y:"1980",t:"Red Right 88 — The Heartbreak Begins",d:"Brian Sipe's ill-fated pass in the end zone in the AFC Championship — the beginning of Cleveland's long Super Bowl drought."},{y:"2017",t:"The 0-16 Season",d:"The Browns went winless — one of the most painful seasons in NFL history for a fanbase known for suffering."},{y:"2023",t:"Deshaun Watson and the Rebuild",d:"Cleveland invested heavily in Watson — a controversial bet on a franchise quarterback that has yet to pay off."}],food:[{i:"🌭",n:"Cleveland Steamer Hot Dog",d:"A natural casing dog with Stadium Mustard — Cleveland's iconic yellow-brown condiment."},{i:"🥩",n:"Polish Boy",d:"Kielbasa topped with coleslaw, fries, and BBQ sauce in a bun — a Cleveland original."},{i:"🍺",n:"Great Lakes Brewing Dortmunder",d:"Cleveland's craft beer institution poured throughout the stadium."}]},
+{id:7,abbr:"PIT",espn:"pit",name:"Pittsburgh Steelers",stadium:"Acrisure Stadium",city:"Pittsburgh, PA",div:"AFC North",lg:"AFC",opened:2001,cap:68400,surf:"Grass",rating:null,rc:"0",p:"#FFB612",s:"#101820",facts:[["Opened","2001"],["Capacity","68,400"],["Surface","Grass"],["Location","Pittsburgh, PA"]],dims:[["68,400","Capacity"],["2001","Opened"],["Grass","Surface"]],unique:["Six Super Bowl championships — tied for most in NFL history","Terrible Towel — one of the most recognized fan props in American sports","Located on the North Shore with views of the Pittsburgh skyline and rivers","Shares with Pittsburgh Panthers college football"],legs:[{y:"1975",t:"The Immaculate Reception",d:"Franco Harris caught a deflected pass and ran for a touchdown — the most famous play in NFL history. The dynasty was born."},{y:"2006",t:"Super Bowl XL — Jerome Bettis Goes Home",d:"Bettis retired on his home field in Detroit with a Super Bowl ring in one of sport's great storybook endings."},{y:"2009",t:"Super Bowl XLIII — Harrison's Pick-Six",d:"James Harrison's 100-yard interception return is the longest play in Super Bowl history."}],food:[{i:"🥪",n:"Primanti Brothers Sandwich",d:"Pittsburgh's legendary sandwich with meat, coleslaw, and fries ALL inside — a Pittsburgh staple since 1933."},{i:"🌭",n:"Kielbasa",d:"Polish sausage with grilled onions — a nod to Pittsburgh's Eastern European immigrant heritage."},{i:"🍺",n:"Iron City Beer",d:"Pittsburgh's own Iron City Lager — the official beer of Steeler Nation."}]},
+{id:8,abbr:"CIN",espn:"cin",name:"Cincinnati Bengals",stadium:"Paycor Stadium",city:"Cincinnati, OH",div:"AFC North",lg:"AFC",opened:2000,cap:65515,surf:"Grass",rating:null,rc:"0",p:"#FB4F14",s:"#000000",facts:[["Opened","2000"],["Capacity","65,515"],["Surface","Grass"],["Location","Cincinnati, OH"]],dims:[["65,515","Capacity"],["2000","Opened"],["Grass","Surface"]],unique:["Paycor Stadium sits on the Ohio River with views of Kentucky","Who Dey! — one of the NFL's most unique battle cries","Joe Burrow-led Super Bowl run in 2021 brought the city alive","Located in downtown Cincinnati next to Great American Ball Park"],legs:[{y:"1988",t:"Super Bowl XXIII — The Drive",d:"Joe Montana drove 92 yards in the final minutes to break Cincinnati's heart — one of the greatest Super Bowl finishes ever."},{y:"2022",t:"Super Bowl LVI — Burrow's Bengal",d:"Joe Burrow led the Bengals to the Super Bowl in just his second season — a remarkable turnaround for a long-suffering franchise."},{y:"2021",t:"Joe Burrow Returns",d:"Burrow came back from a torn ACL and immediately led Cincinnati to the AFC Championship — one of the great comeback stories in NFL history."}],food:[{i:"🌭",n:"Cincinnati Cheese Coney",d:"A hot dog with cinnamon-spiced Skyline chili, mustard, and shredded cheddar — a Cincinnati original."},{i:"🥧",n:"Graeter's Ice Cream",d:"Cincinnati's legendary ice cream brand — Black Raspberry Chocolate Chip is the signature flavor."},{i:"🍺",n:"Rhinegeist Craft Beer",d:"Cincinnati's iconic craft brewery from the historic Over-the-Rhine neighborhood."}]},
+{id:9,abbr:"HOU",espn:"hou",name:"Houston Texans",stadium:"NRG Stadium",city:"Houston, TX",div:"AFC South",lg:"AFC",opened:2002,cap:72220,surf:"Grass",rating:null,rc:"0",p:"#03202F",s:"#A71930",facts:[["Opened","2002"],["Capacity","72,220"],["Surface","Grass"],["Roof","Retractable"]],dims:[["72,220","Capacity"],["2002","Opened"],["Retractable","Roof"]],unique:["NRG Stadium has a retractable roof — crucial for Houston's heat and humidity","Home of the Houston Livestock Show and Rodeo — the world's largest","C.J. Stroud's arrival signaled a new era for the franchise","One of the newest NFL franchises — founded in 2002"],legs:[{y:"2019",t:"J.J. Watt's Dominance",d:"Watt defined the Texans era with three Defensive Player of the Year awards — one of the greatest defensive players in NFL history."},{y:"2023",t:"C.J. Stroud Rookie of the Year",d:"Stroud had one of the greatest rookie seasons in NFL history — leading the Texans to the playoffs."},{y:"2012",t:"First AFC South Title",d:"Under Gary Kubiak and Arian Foster, the Texans won their first division title — a milestone for the young franchise."}],food:[{i:"🌮",n:"Tex-Mex Loaded Nachos",d:"Brisket, queso, jalapeños, and pico de gallo — proper Houston Tex-Mex at the stadium."},{i:"🥩",n:"BBQ Brisket",d:"Slow-smoked Texas brisket from local pitmasters — the definitive Houston game day food."},{i:"🍺",n:"Saint Arnold Brewing",d:"Houston's oldest craft brewery pours throughout NRG Stadium."}]},
+{id:10,abbr:"IND",espn:"ind",name:"Indianapolis Colts",stadium:"Lucas Oil Stadium",city:"Indianapolis, IN",div:"AFC South",lg:"AFC",opened:2008,cap:67000,surf:"FieldTurf",rating:null,rc:"0",p:"#002C5F",s:"#A2AAAD",facts:[["Opened","2008"],["Capacity","67,000"],["Surface","FieldTurf"],["Roof","Retractable"]],dims:[["67,000","Capacity"],["2008","Opened"],["Retractable","Roof"]],unique:["Lucas Oil Stadium has a retractable roof and one of the best playing surfaces in the NFL","Hosted Super Bowl XLVI in 2012","Peyton Manning defined a generation of Colts football","The RCA Dome was replaced by one of the most modern stadiums in the NFL"],legs:[{y:"2007",t:"Super Bowl XLI — Peyton Manning MVP",d:"Manning finally won his first Super Bowl, defeating the Chicago Bears in the rain. One of the most celebrated championships in NFL history."},{y:"1995",t:"The Arrival of Peyton Manning",d:"Manning was drafted first overall and transformed Indianapolis into a perennial contender."},{y:"2012",t:"Andrew Luck Era Begins",d:"Luck was drafted first overall and immediately led the Colts to the playoffs in his rookie season."}],food:[{i:"🌭",n:"Indiana Pork Tenderloin",d:"A breaded and fried pork tenderloin sandwich — the state sandwich of Indiana and a Lucas Oil Stadium staple."},{i:"🍦",n:"Jeni's Splendid Ice Creams",d:"Columbus, Ohio-based Jeni's — one of the most celebrated ice cream brands in the Midwest."},{i:"🍺",n:"Sun King Brewing",d:"Indianapolis's beloved local craft brewery pours throughout Lucas Oil Stadium."}]},
+{id:11,abbr:"JAX",espn:"jax",name:"Jacksonville Jaguars",stadium:"EverBank Stadium",city:"Jacksonville, FL",div:"AFC South",lg:"AFC",opened:1995,cap:62000,surf:"Grass",rating:null,rc:"0",p:"#006778",s:"#9F792C",facts:[["Opened","1995"],["Capacity","62,000"],["Surface","Grass"],["Location","Jacksonville, FL"]],dims:[["62,000","Capacity"],["1995","Opened"],["Grass","Surface"]],unique:["EverBank Stadium sits on the St. Johns River — a unique waterfront setting","Famous for the swimming pools in the end zone — a unique NFL feature","Shahid Khan's investment has transformed both the stadium and the franchise","Trevor Lawrence-led rebuild is one of the NFL's most anticipated storylines"],legs:[{y:"1999",t:"AFC Championship Game",d:"The Jaguars reached the AFC Championship Game in just their fifth year of existence — one of the fastest rises in NFL history."},{y:"2022",t:"The Miracle at TIAA Bank Field",d:"The Jaguars overcame a 27-0 deficit to defeat the Chargers in the Wild Card round — the second-largest comeback in NFL playoff history."},{y:"2023",t:"Trevor Lawrence Emerges",d:"Lawrence proved himself as a franchise quarterback, leading Jacksonville back to the playoffs."}],food:[{i:"🌮",n:"Florida Shrimp Tacos",d:"Fresh Gulf shrimp with tropical salsa and lime crema — Florida coastal cuisine at the stadium."},{i:"🏊",n:"Pool Deck Experience",d:"The famous end zone pools offer a unique stadium experience unlike anywhere else in the NFL."},{i:"🍺",n:"Bold City Brewing",d:"Jacksonville's own craft brewery pours throughout EverBank Stadium."}]},
+{id:12,abbr:"TEN",espn:"ten",name:"Tennessee Titans",stadium:"Nissan Stadium",city:"Nashville, TN",div:"AFC South",lg:"AFC",opened:1999,cap:69143,surf:"Grass",rating:null,rc:"0",p:"#0C2340",s:"#4B92DB",facts:[["Opened","1999"],["Capacity","69,143"],["Surface","Grass"],["Location","Nashville, TN"]],dims:[["69,143","Capacity"],["1999","Opened"],["Grass","Surface"]],unique:["Located in Nashville — Music City brings unique entertainment culture to game days","A new stadium is planned to replace Nissan Stadium","The Music City Miracle is one of the most famous plays in NFL playoff history","Derrick Henry's tenure defined a decade of Titans football"],legs:[{y:"2000",t:"The Music City Miracle",d:"A lateral pass on a kickoff return sent the Titans to the AFC Championship Game — one of the most controversial and celebrated plays in NFL history."},{y:"2000",t:"Super Bowl XXXIV — One Yard Short",d:"Kevin Dyson was tackled one yard short of the end zone as time expired — one of the most dramatic Super Bowl finishes ever."},{y:"2019",t:"Derrick Henry's 2,000-Yard Season",d:"Henry rushed for 2,027 yards — one of the greatest single-season rushing performances in NFL history."}],food:[{i:"🎸",n:"Nashville Hot Chicken",d:"Prince's-style hot chicken sandwich — the signature Nashville food experience at Nissan Stadium."},{i:"🍺",n:"Tennessee Whiskey Cocktails",d:"Jack Daniel's Tennessee Whiskey cocktails — a nod to the state's most famous export."},{i:"🥩",n:"BBQ Pulled Pork",d:"Tennessee-style slow-smoked pulled pork with vinegar slaw — Music City BBQ at its finest."}]},
+{id:13,abbr:"KC",espn:"kc",name:"Kansas City Chiefs",stadium:"GEHA Field at Arrowhead Stadium",city:"Kansas City, MO",div:"AFC West",lg:"AFC",opened:1972,cap:76416,surf:"Grass",rating:null,rc:"0",p:"#E31837",s:"#FFB81C",facts:[["Opened","1972"],["Capacity","76,416"],["Surface","Grass"],["Guinness Record","Loudest Stadium Ever Recorded"]],dims:[["76,416","Capacity"],["1972","Opened"],["140.5 dB","Record Noise Level"]],unique:["Guinness World Record holder for loudest stadium ever recorded at 140.5 decibels","Patrick Mahomes era has produced three Super Bowl championships","One of the most intimidating home field advantages in the NFL","The sea of red on game day is one of sport's most striking visuals"],legs:[{y:"1970",t:"Super Bowl IV — Len Dawson",d:"Len Dawson led the Chiefs over the Vikings in Super Bowl IV — the last AFL team to win a championship."},{y:"2020",t:"Super Bowl LIV — Mahomes First Title",d:"Mahomes led a 24-point comeback to win the Chiefs' first Super Bowl in 50 years — the dynasty began."},{y:"2023",t:"Super Bowl LVII — Dynasty Confirmed",d:"Back-to-back Super Bowl titles confirmed the Chiefs as the defining dynasty of the modern NFL era."}],food:[{i:"🥩",n:"Kansas City BBQ Burnt Ends",d:"Crispy, caramelized brisket tips — the definitive Kansas City food served at Arrowhead Stadium."},{i:"🌽",n:"Street Corn",d:"Elote-style roasted corn with mayo, cotija, chili powder, and lime."},{i:"🍺",n:"Boulevard Brewing",d:"Kansas City's own Boulevard pours Unfiltered Wheat and Tank 7 throughout Arrowhead."}]},
+{id:14,abbr:"LV",espn:"lv",name:"Las Vegas Raiders",stadium:"Allegiant Stadium",city:"Las Vegas, NV",div:"AFC West",lg:"AFC",opened:2020,cap:65000,surf:"Grass",rating:null,rc:"0",p:"#000000",s:"#A5ACAF",facts:[["Opened","2020"],["Capacity","65,000"],["Surface","Grass"],["Cost","$1.9 Billion"]],dims:[["65,000","Capacity"],["2020","Opened"],["$1.9B","Construction Cost"]],unique:["Allegiant Stadium cost $1.9 billion — one of the most expensive stadiums ever built","Located in Las Vegas — the Entertainment Capital of the World","The grass field rolls in from outside before every game","Al Davis's commitment to excellence — the Raiders' motto"],legs:[{y:"1984",t:"Super Bowl XVIII — Dominant Raiders",d:"The Raiders crushed the Redskins 38-9 in Tampa — one of the most dominant Super Bowl performances ever."},{y:"2002",t:"The Tuck Rule Game",d:"A controversial call in the snow against New England changed the trajectory of NFL history."},{y:"2020",t:"Move to Las Vegas",d:"The Raiders relocated to Las Vegas and opened Allegiant Stadium — one of the most spectacular venues in sports."}],food:[{i:"🎰",n:"Las Vegas Buffet Experience",d:"World-class food options reflecting Las Vegas's incredible culinary scene — no other NFL stadium compares."},{i:"🥩",n:"Premium Steaks",d:"Las Vegas-style premium cut steaks from celebrity chef restaurants inside the stadium."},{i:"🍺",n:"Craft Beer Garden",d:"A massive craft beer selection reflecting the Las Vegas premium entertainment experience."}]},
+{id:15,abbr:"LAC",espn:"lac",name:"Los Angeles Chargers",stadium:"SoFi Stadium",city:"Inglewood, CA",div:"AFC West",lg:"AFC",opened:2020,cap:70240,surf:"Matrix Turf",rating:null,rc:"0",p:"#0080C6",s:"#FFC20E",facts:[["Opened","2020"],["Capacity","70,240"],["Surface","Matrix Turf"],["Cost","$5.5 Billion"]],dims:[["70,240","Capacity"],["2020","Opened"],["$5.5B","Most Expensive Ever"]],unique:["SoFi Stadium cost $5.5 billion — the most expensive stadium ever built","Shares with the Los Angeles Rams","Hosted Super Bowl LVI in 2022","The translucent roof creates a unique open-air feel while providing weather protection"],legs:[{y:"1994",t:"AFC Championship — The Drive Comeback",d:"The Chargers reached their only Super Bowl after a dramatic comeback against the Pittsburgh Steelers."},{y:"2022",t:"Justin Herbert Era Begins",d:"Herbert emerged as one of the best young quarterbacks in the NFL — leading the Chargers to multiple playoff appearances."},{y:"2020",t:"SoFi Stadium Opens",d:"The most expensive stadium in history opened in Inglewood — immediately one of the most spectacular venues in American sports."}],food:[{i:"🌮",n:"SoCal Fish Tacos",d:"Baja-style fish tacos with beer-battered white fish, cabbage slaw, and crema — authentic Southern California flavors."},{i:"🥑",n:"Avocado Toast and Bowls",d:"California health-conscious cuisine including avocado bowls, grain salads, and fresh options."},{i:"🍺",n:"Golden Road Brewing",d:"LA's own craft brewery pours Wolf Pup IPA and Mango Cart throughout SoFi Stadium."}]},
+{id:16,abbr:"DEN",espn:"den",name:"Denver Broncos",stadium:"Empower Field at Mile High",city:"Denver, CO",div:"AFC West",lg:"AFC",opened:2001,cap:76125,surf:"Grass",rating:null,rc:"0",p:"#FB4F14",s:"#002244",facts:[["Opened","2001"],["Capacity","76,125"],["Surface","Grass"],["Elevation","5,280 feet above sea level"]],dims:[["76,125","Capacity"],["2001","Opened"],["5,280 ft","Elevation"]],unique:["Located at 5,280 feet elevation — Mile High advantage is real and measurable","Three Super Bowl championships (1998, 1999, 2016)","John Elway defined a generation of Denver football","The thin air at altitude affects passing, kicking, and stamina for visiting teams"],legs:[{y:"1998",t:"Super Bowl XXXII — Elway's First",d:"John Elway finally won his first Super Bowl after four failed attempts — one of sport's most emotional moments."},{y:"2016",t:"Super Bowl 50 — Von Miller MVP",d:"Von Miller's dominant performance led Denver over Carolina — a defensive masterpiece."},{y:"1999",t:"Super Bowl XXXIII — Elway Retires a Champion",d:"Elway won his second consecutive Super Bowl and rode off into the sunset — the perfect ending."}],food:[{i:"🍔",n:"Colorado Bison Burger",d:"Lean, flavorful bison patty with local green chilies and pepper jack — a Colorado specialty."},{i:"🥩",n:"Rocky Mountain Oysters",d:"Fried bull testicles — a Colorado tradition for the adventurous Broncos fan."},{i:"🍺",n:"Coors Light / Oskar Blues",d:"Coors was born in Colorado. Oskar Blues pours Dale's Pale Ale throughout the stadium."}]},
+{id:17,abbr:"DAL",espn:"dal",name:"Dallas Cowboys",stadium:"AT&T Stadium",city:"Arlington, TX",div:"NFC East",lg:"NFC",opened:2009,cap:80000,surf:"Matrix Turf",rating:null,rc:"0",p:"#003594",s:"#041E42",facts:[["Opened","2009"],["Capacity","80,000"],["Surface","Matrix Turf"],["Cost","$1.3 Billion"]],dims:[["80,000","Capacity"],["2009","Opened"],["$1.3B","Construction Cost"]],unique:["America's Team — the most valuable sports franchise in the world","The world's largest domed stadium by volume","The center-hung HD video board is the largest in the world","Jerry Jones built one of the most spectacular venues in the history of sports"],legs:[{y:"1993",t:"Troy Aikman — Dynasty Peaks",d:"Aikman, Emmitt Smith, and Michael Irvin won three Super Bowls in four years — the last Cowboys dynasty."},{y:"2009",t:"AT&T Stadium Opens",d:"Jerry Jones unveiled the most spectacular stadium ever built — immediately transforming the NFL stadium experience."},{y:"1978",t:"The Original America's Team",d:"A documentary called the Cowboys America's Team — a label that has stuck for 45 years."}],food:[{i:"🥩",n:"Texas Brisket",d:"Slow-smoked Texas BBQ brisket with all the fixings — the definitive Texas game day food."},{i:"🌮",n:"Tex-Mex Nachos",d:"Loaded nachos with brisket, queso, jalapeños, and pico — proper Dallas Tex-Mex."},{i:"🍺",n:"Shiner Bock",d:"Texas's most iconic beer, brewed in Shiner, TX since 1909."}]},
+{id:18,abbr:"NYG",espn:"nyg",name:"New York Giants",stadium:"MetLife Stadium",city:"East Rutherford, NJ",div:"NFC East",lg:"NFC",opened:2010,cap:82500,surf:"FieldTurf",rating:null,rc:"0",p:"#0B2265",s:"#A71930",facts:[["Opened","2010"],["Capacity","82,500"],["Surface","FieldTurf"],["Shared","With NY Jets"]],dims:[["82,500","Capacity"],["2010","Opened"],["FieldTurf","Surface"]],unique:["Shares MetLife Stadium with the New York Jets","Four Super Bowl championships — two over the previously undefeated New England Patriots","Eli Manning's two Super Bowl MVP performances are among the greatest clutch performances in NFL history","The most storied franchise in NFC history"],legs:[{y:"2008",t:"Super Bowl XLII — The Helmet Catch",d:"David Tyree's helmet catch enabled the Giants to end the Patriots' perfect season — the greatest upset in Super Bowl history."},{y:"2012",t:"Super Bowl XLVI — Eli Does It Again",d:"Manning defeated Brady and the Patriots again in the Super Bowl — cementing his legacy as a clutch performer."},{y:"1987",t:"Lawrence Taylor Redefines Defense",d:"LT's dominant era made the Giants the standard for defensive excellence in the NFL."}],food:[{i:"🌭",n:"New York Style Hot Dog",d:"Classic NYC-style hot dog with yellow mustard and sauerkraut."},{i:"🥩",n:"Jersey Pork Roll",d:"Taylor Ham on a kaiser roll — a New Jersey institution beloved at MetLife Stadium."},{i:"🍕",n:"NY-Style Pizza",d:"Giant foldable New York slices throughout the concourse."}]},
+{id:19,abbr:"PHI",espn:"phi",name:"Philadelphia Eagles",stadium:"Lincoln Financial Field",city:"Philadelphia, PA",div:"NFC East",lg:"NFC",opened:2003,cap:69176,surf:"Matrix Turf",rating:null,rc:"0",p:"#004C54",s:"#A5ACAF",facts:[["Opened","2003"],["Capacity","69,176"],["Surface","Matrix Turf"],["Location","South Philadelphia"]],dims:[["69,176","Capacity"],["2003","Opened"],["Matrix Turf","Surface"]],unique:["Philadelphia fans are the most passionate and intimidating in the NFL","Eagles fans once booed Santa Claus — the ultimate badge of Philly fandom","Super Bowl LII win over the Patriots was the most celebrated championship in Philadelphia history","The Linc is considered one of the loudest stadiums in the NFL"],legs:[{y:"2018",t:"Super Bowl LII — The Philly Special",d:"Nick Foles caught a touchdown pass on the Philly Special trick play — the Eagles beat the Patriots for their first Super Bowl title."},{y:"2023",t:"Jalen Hurts and the Return",d:"Hurts led the Eagles to the Super Bowl again — a sign that Philadelphia has built a dynasty contender."},{y:"2017",t:"Carson Wentz MVP Season",d:"Wentz was on track for the MVP award before injury — Foles finished the job and won the Super Bowl."}],food:[{i:"🥩",n:"Philly Cheesesteak",d:"Shaved ribeye, Cheez Whiz or provolone, on an Amoroso roll — the most iconic stadium food in the NFL."},{i:"🥨",n:"Philly Soft Pretzel",d:"Massive, doughy soft pretzels with yellow mustard — a Citizens Bank Park and Lincoln Financial staple."},{i:"🍺",n:"Yards Brewing",d:"Philadelphia's own Yards pours their Philadelphia Pale Ale throughout the Linc."}]},
+{id:20,abbr:"WAS",espn:"was",name:"Washington Commanders",stadium:"Northwest Stadium",city:"Landover, MD",div:"NFC East",lg:"NFC",opened:1997,cap:67617,surf:"Grass",rating:null,rc:"0",p:"#5A1414",s:"#FFB612",facts:[["Opened","1997"],["Capacity","67,617"],["Surface","Grass"],["New Stadium","Planned for Washington DC"]],dims:[["67,617","Capacity"],["1997","Opened"],["Grass","Surface"]],unique:["A new stadium is planned for the RFK Stadium site in Washington DC","Three Super Bowl championships under Joe Gibbs","The Hogs offensive line of the 1980s is the most celebrated in NFL history","Dan Snyder's controversial ownership era has ended — new ownership brings hope"],legs:[{y:"1988",t:"Super Bowl XXII — Doug Williams MVP",d:"Williams became the first Black quarterback to start and win a Super Bowl — throwing for 340 yards and 4 TDs in one quarter."},{y:"1983",t:"Super Bowl XVII — The Riggins Run",d:"John Riggins broke free for a 43-yard touchdown run — one of the most iconic plays in Super Bowl history."},{y:"2024",t:"New Ownership and New Era",d:"Josh Harris's ownership group took over and immediately signaled a new direction for the franchise."}],food:[{i:"🥩",n:"Half-Smoke",d:"DC's iconic half-smoke sausage with chili and mustard — Ben's Chili Bowl tradition at the stadium."},{i:"🍺",n:"DC Brau Brewing",d:"Washington DC's first production brewery since Prohibition pours throughout the stadium."},{i:"🌽",n:"DC-Style Half Smoke",d:"The signature DC street food — a spicy half-smoke sausage link served with mustard and onions."}]},
+{id:21,abbr:"CHI",espn:"chi",name:"Chicago Bears",stadium:"Soldier Field",city:"Chicago, IL",div:"NFC North",lg:"NFC",opened:1924,cap:61500,surf:"Grass",rating:null,rc:"0",p:"#0B162A",s:"#C83803",facts:[["Opened","1924"],["Capacity","61,500"],["Surface","Grass"],["Historic","Landmark Status"]],dims:[["61,500","Capacity"],["1924","Opened"],["Grass","Surface"]],unique:["Soldier Field is a National Historic Landmark — the oldest stadium in the NFL","Located on the lakefront of Lake Michigan with stunning Chicago skyline views","The 1985 Bears are considered the greatest defense in NFL history","A new domed stadium is planned to replace Soldier Field"],legs:[{y:"1986",t:"The 1985 Bears — The Shufflin' Crew",d:"The 85 Bears went 15-1 and dismantled the Patriots in Super Bowl XX — the most dominant team in NFL history."},{y:"1940",t:"The Greatest Upset in NFL History",d:"The Bears defeated the Redskins 73-0 in the NFL Championship — still the most lopsided game in professional football."},{y:"2024",t:"Caleb Williams — New Era Begins",d:"Williams was drafted first overall — the most anticipated Bears quarterback since Sid Luckman."}],food:[{i:"🌭",n:"Chicago-Style Hot Dog",d:"Vienna Beef, yellow mustard, relish, tomato, pickle, sport peppers, celery salt. Never ketchup."},{i:"🍕",n:"Chicago Deep Dish Pizza",d:"Lou Malnati's and Giordano's supply authentic deep dish throughout Soldier Field."},{i:"🍺",n:"Old Style Beer",d:"Chicago's classic lager — served at Soldier Field since the 1950s."}]},
+{id:22,abbr:"DET",espn:"det",name:"Detroit Lions",stadium:"Ford Field",city:"Detroit, MI",div:"NFC North",lg:"NFC",opened:2002,cap:65000,surf:"FieldTurf",rating:null,rc:"0",p:"#0076B6",s:"#B0B7BC",facts:[["Opened","2002"],["Capacity","65,000"],["Surface","FieldTurf"],["Location","Downtown Detroit"]],dims:[["65,000","Capacity"],["2002","Opened"],["FieldTurf","Surface"]],unique:["Ford Field is an indoor stadium in the heart of downtown Detroit","The Lions have never appeared in a Super Bowl — the longest drought in NFL history","Jared Goff and Dan Campbell's culture change has transformed the franchise","Thanksgiving Day tradition — the Lions have hosted every Thanksgiving since 1934"],legs:[{y:"1957",t:"The Last Championship",d:"Bobby Layne led the Lions to the NFL Championship — their last title in program history."},{y:"2023",t:"The Dan Campbell Era — NFC Championship",d:"Campbell's culture overhaul led Detroit to the NFC Championship Game for the first time since 1991."},{y:"2024",t:"Jared Goff — Unlikely Hero",d:"Goff transformed from a supposed bust into one of the NFL's most efficient quarterbacks in Detroit."}],food:[{i:"🌭",n:"Coney Island Hot Dog",d:"Natural casing frank with beanless chili, mustard, and diced onions — a Detroit institution."},{i:"🍕",n:"Detroit-Style Pizza",d:"Thick, rectangular, crispy-bottomed pizza with sauce on top — a Detroit original."},{i:"🍺",n:"Bell's Brewery",d:"Michigan's most celebrated craft brewery. Oberon Ale is the signature pour."}]},
+{id:23,abbr:"GB",espn:"gb",name:"Green Bay Packers",stadium:"Lambeau Field",city:"Green Bay, WI",div:"NFC North",lg:"NFC",opened:1957,cap:81441,surf:"Grass",rating:null,rc:"0",p:"#203731",s:"#FFB612",facts:[["Opened","1957"],["Capacity","81,441"],["Surface","Grass"],["Ownership","Community-Owned"]],dims:[["81,441","Capacity"],["1957","Opened"],["Grass","Surface"]],unique:["The only community-owned non-profit team in the NFL — owned by 360,000+ shareholders","Lambeau Field is the most storied venue in NFL history","The Frozen Tundra — legendary cold-weather games","Titletown — the Green Bay community built around the Packers"],legs:[{y:"1967",t:"The Ice Bowl — -13 Degrees",d:"The coldest game in NFL history — Bart Starr sneaked in for the winning touchdown against Dallas. The most legendary game ever played."},{y:"1997",t:"Super Bowl XXXI — Favre's Title",d:"Brett Favre led the Packers over the Patriots to win the Super Bowl — one of Green Bay's most celebrated championships."},{y:"2011",t:"Super Bowl XLV — Rodgers MVP",d:"Aaron Rodgers won the Super Bowl MVP in his most dominant season — the peak of his legendary career."}],food:[{i:"🍻",n:"Bratwurst",d:"Beer-boiled Wisconsin brat on a hard roll with mustard and sauerkraut — the definitive Lambeau Field food experience."},{i:"🧀",n:"Cheese",d:"Wisconsin cheese curds, cheese boards, and every imaginable cheese product — the Dairy State at its finest."},{i:"🍺",n:"Leinenkugel's",d:"Wisconsin's beloved Leinenkugel's pours Summer Shandy and Sunset Wheat throughout Lambeau."}]},
+{id:24,abbr:"MIN",espn:"min",name:"Minnesota Vikings",stadium:"U.S. Bank Stadium",city:"Minneapolis, MN",div:"NFC North",lg:"NFC",opened:2016,cap:66860,surf:"FieldTurf",rating:null,rc:"0",p:"#4F2683",s:"#FFC62F",facts:[["Opened","2016"],["Capacity","66,860"],["Surface","FieldTurf"],["Cost","$1.1 Billion"]],dims:[["66,860","Capacity"],["2016","Opened"],["FieldTurf","Surface"]],unique:["U.S. Bank Stadium's translucent roof lets in natural light while keeping Minnesota weather out","Hosted Super Bowl LII in 2018","The Minneapolis Miracle is one of the greatest plays in NFL playoff history","Kirk Cousins's record contract was one of the NFL's most discussed deals"],legs:[{y:"1998",t:"The Randall Cunningham Season — 15-1",d:"Cunningham and Randy Moss led the Vikings to 15 wins — the NFC Championship Game loss to Atlanta remains the biggest what-if in Vikings history."},{y:"2018",t:"The Minneapolis Miracle",d:"Stefon Diggs caught a last-second touchdown with no time remaining to defeat New Orleans — the most electrifying play in recent NFL history."},{y:"2016",t:"U.S. Bank Stadium Opens",d:"The spectacular new stadium opened to massive fanfare — one of the most beautiful indoor venues in sports."}],food:[{i:"🍖",n:"Kramarczuk's Sausage",d:"Minneapolis's legendary Ukrainian butcher supplies handmade bratwurst and kielbasa to the stadium."},{i:"🍺",n:"Surly Brewing",d:"Minnesota's beloved craft brewery pours Furious IPA and Darkness stout throughout U.S. Bank Stadium."},{i:"🥧",n:"Jucy Lucy Burger",d:"A burger stuffed with molten cheese inside the patty — a Minneapolis original from Matt's Bar."}]},
+{id:25,abbr:"ATL",espn:"atl",name:"Atlanta Falcons",stadium:"Mercedes-Benz Stadium",city:"Atlanta, GA",div:"NFC South",lg:"NFC",opened:2017,cap:71000,surf:"FieldTurf",rating:null,rc:"0",p:"#A71930",s:"#000000",facts:[["Opened","2017"],["Capacity","71,000"],["Surface","FieldTurf"],["Cost","$1.6 Billion"]],dims:[["71,000","Capacity"],["2017","Opened"],["$1.6B","Construction Cost"]],unique:["Mercedes-Benz Stadium's retractable roof is the most innovative in NFL history — opens like a camera aperture","The $1.50 hot dog pricing made it the most fan-friendly stadium in the NFL","28-3 — the most famous collapse in Super Bowl history happened here","Arthur Blank's commitment to the fan experience has set a new NFL standard"],legs:[{y:"2017",t:"Super Bowl LI — 28-3",d:"The Falcons led 28-3 in the third quarter before the most stunning collapse in Super Bowl history — New England won in overtime."},{y:"2017",t:"Mercedes-Benz Stadium Opens",d:"The most innovative stadium in the NFL opened — featuring a retractable roof that opens like a camera aperture."},{y:"2023",t:"Bijan Robinson Arrives",d:"The Falcons selected Robinson with a top pick — one of the most exciting running backs in recent memory."}],food:[{i:"🍗",n:"Chick-fil-A at the Stadium",d:"The Atlanta-born chain has multiple locations throughout Mercedes-Benz Stadium — a unique hometown connection."},{i:"🌭",n:"$1.50 Hot Dogs",d:"Arthur Blank's famous fan-friendly pricing — $1.50 hot dogs are the most talked-about concession in the NFL."},{i:"🍺",n:"SweetWater Brewing",d:"Atlanta's own SweetWater 420 pale ale poured throughout the stadium."}]},
+{id:26,abbr:"CAR",espn:"car",name:"Carolina Panthers",stadium:"Bank of America Stadium",city:"Charlotte, NC",div:"NFC South",lg:"NFC",opened:1996,cap:74455,surf:"Grass",rating:null,rc:"0",p:"#0085CA",s:"#101820",facts:[["Opened","1996"],["Capacity","74,455"],["Surface","Grass"],["Location","Charlotte, NC"]],dims:[["74,455","Capacity"],["1996","Opened"],["Grass","Surface"]],unique:["Bank of America Stadium sits in the heart of uptown Charlotte","One of the youngest NFL franchises — founded in 1995","Cam Newton's MVP season produced one of the most entertaining offenses in NFL history","The Keep Pounding drumbeat is one of the NFL's most recognized traditions"],legs:[{y:"2004",t:"Super Bowl XXXVIII — Janet Jackson",d:"Beyond the halftime controversy, the Panthers nearly won the Super Bowl in a dramatic 29-17 loss to the Patriots."},{y:"2016",t:"Cam Newton's MVP Season — Super Bowl 50",d:"Newton led the Panthers to 15-1 and the Super Bowl — one of the most dominant regular seasons in NFL history."},{y:"1996",t:"Expansion Success — NFC Championship",d:"In just their second year of existence, the Panthers reached the NFC Championship Game — one of the fastest rises in NFL history."}],food:[{i:"🍗",n:"Carolina BBQ",d:"Vinegar-based pulled pork BBQ — the North Carolina style that defines Carolinas barbecue culture."},{i:"🌭",n:"South Carolina Sausage",d:"Local sausage with mustard-based sauce — a South Carolina BBQ tradition."},{i:"🍺",n:"NoDa Brewing",d:"Charlotte's award-winning craft brewery pours throughout Bank of America Stadium."}]},
+{id:27,abbr:"NO",espn:"no",name:"New Orleans Saints",stadium:"Caesars Superdome",city:"New Orleans, LA",div:"NFC South",lg:"NFC",opened:1975,cap:73208,surf:"PolyTurf",rating:null,rc:"0",p:"#D3BC8D",s:"#101820",facts:[["Opened","1975"],["Capacity","73,208"],["Surface","PolyTurf"],["History","Hurricane Katrina Shelter"]],dims:[["73,208","Capacity"],["1975","Opened"],["PolyTurf","Surface"]],unique:["Served as a refuge of last resort during Hurricane Katrina in 2005","Super Bowl XLIV win was the most emotionally resonant championship in NFL history","Who Dat Nation — one of the NFL's most passionate fan bases","Drew Brees became the most beloved athlete in New Orleans history"],legs:[{y:"2010",t:"Super Bowl XLIV — Who Dat Nation",d:"Four years after Katrina, the Saints won the Super Bowl — one of the most emotional championships in American sports history."},{y:"2006",t:"Return to the Superdome",d:"The Saints returned to a renovated Superdome and Steve Gleason blocked a punt on the first play — the most electric moment in Saints history."},{y:"2019",t:"The No-Call Heard Round the World",d:"A missed pass interference call against the Rams ended the Saints' Super Bowl hopes — one of the most controversial plays in NFL history."}],food:[{i:"🌮",n:"Cajun Seafood",d:"Crawfish etouffee, shrimp po'boys, and gumbo — New Orleans is the greatest food city in America and the Superdome reflects that."},{i:"🥖",n:"Shrimp Po'Boy",d:"Fresh Gulf shrimp on French bread with lettuce, tomato, and remoulade — the quintessential New Orleans sandwich."},{i:"🍺",n:"Abita Brewing",d:"Louisiana's most celebrated craft brewery pours Turbodog and Purple Haze throughout the Superdome."}]},
+{id:28,abbr:"TB",espn:"tb",name:"Tampa Bay Buccaneers",stadium:"Raymond James Stadium",city:"Tampa, FL",div:"NFC South",lg:"NFC",opened:1998,cap:65890,surf:"Grass",rating:null,rc:"0",p:"#D50A0A",s:"#34302B",facts:[["Opened","1998"],["Capacity","65,890"],["Surface","Grass"],["Feature","Pirate Ship in End Zone"]],dims:[["65,890","Capacity"],["1998","Opened"],["Grass","Surface"]],unique:["A full-size pirate ship fires cannons in the end zone on every Buccaneers touchdown","Two Super Bowl championships (2003, 2021)","Tom Brady's final Super Bowl win at his home stadium is unmatched in NFL history","Shared with USF Bulls college football"],legs:[{y:"2003",t:"Super Bowl XXXVII — The Pirate Bowl",d:"Jon Gruden defeated his former team the Raiders 48-21 — the most lopsided Super Bowl in history."},{y:"2021",t:"Super Bowl LV — Brady's Home Game",d:"Tom Brady won his seventh Super Bowl ring at his home stadium — the first player ever to win a Super Bowl at his home field."},{y:"2020",t:"Brady Signs with the Buccaneers",d:"Brady's decision to sign with Tampa Bay shocked the football world and immediately made the Buccaneers Super Bowl contenders."}],food:[{i:"🏴‍☠️",n:"Pirate Ship Loaded Fries",d:"Loaded fries with pulled pork, queso, and jalapeños — served near the iconic pirate ship."},{i:"🦐",n:"Florida Gulf Shrimp",d:"Fresh Gulf shrimp with cocktail sauce — Florida coastal cuisine at its finest."},{i:"🍺",n:"Cigar City Brewing",d:"Tampa's legendary craft brewery pours Jai Alai IPA throughout Raymond James Stadium."}]},
+{id:29,abbr:"ARI",espn:"ari",name:"Arizona Cardinals",stadium:"State Farm Stadium",city:"Glendale, AZ",div:"NFC West",lg:"NFC",opened:2006,cap:63400,surf:"Grass",rating:null,rc:"0",p:"#97233F",s:"#000000",facts:[["Opened","2006"],["Capacity","63,400"],["Surface","Grass (rolls in/out)"],["Feature","Retractable Grass Field"]],dims:[["63,400","Capacity"],["2006","Opened"],["Grass","Rolls In and Out"]],unique:["The natural grass field rolls in and out of the stadium on a tray — unique in the NFL","Retractable roof keeps Arizona heat out","Hosted multiple Super Bowls","The oldest franchise in the NFL — founded in 1898"],legs:[{y:"2009",t:"Super Bowl XLIII — One of the Greatest Ever",d:"The Cardinals nearly won the Super Bowl against the Steelers in what many call the greatest Super Bowl ever played."},{y:"2015",t:"Carson Palmer's MVP Push",d:"Palmer and Larry Fitzgerald led the Cardinals to 13-3 — the best record in franchise history."},{y:"1988",t:"The Move to Arizona",d:"The Cardinals relocated from St. Louis to Arizona — beginning a new chapter for the oldest franchise in the NFL."}],food:[{i:"🌮",n:"Arizona Sonoran Hot Dog",d:"Bacon-wrapped dog in a bolillo bun with pinto beans, tomato, onion, mayo, and jalapeño — an authentic Arizona original."},{i:"🌵",n:"Southwestern Nachos",d:"Loaded nachos with green chili, queso, pulled pork, and pico de gallo — Sonoran Desert flavors."},{i:"🍺",n:"Four Peaks Brewing",d:"Arizona's iconic craft brewery pours Kilt Lifter throughout State Farm Stadium."}]},
+{id:30,abbr:"LAR",espn:"lar",name:"Los Angeles Rams",stadium:"SoFi Stadium",city:"Inglewood, CA",div:"NFC West",lg:"NFC",opened:2020,cap:70240,surf:"Matrix Turf",rating:null,rc:"0",p:"#003594",s:"#FFA300",facts:[["Opened","2020"],["Capacity","70,240"],["Surface","Matrix Turf"],["Cost","$5.5 Billion"]],dims:[["70,240","Capacity"],["2020","Opened"],["$5.5B","Most Expensive Ever"]],unique:["Shares SoFi Stadium with the Los Angeles Chargers","Won Super Bowl LVI at their home stadium — the second team ever to do so","Sean McVay is the youngest head coach to win a Super Bowl","Cooper Kupp's Offensive Player of the Year season was one of the greatest receiver seasons in NFL history"],legs:[{y:"2022",t:"Super Bowl LVI — Home Win",d:"The Rams defeated the Bengals 23-20 at their home stadium — only the second team ever to win a Super Bowl at home."},{y:"2018",t:"Super Bowl LIII — The Defensive Classic",d:"The Rams fell to the Patriots 13-3 in the lowest-scoring Super Bowl ever."},{y:"2000",t:"The Greatest Show on Turf",d:"Kurt Warner, Marshall Faulk, and Isaac Bruce defined an era — the Rams scored at will in the most explosive offense in NFL history."}],food:[{i:"🌮",n:"SoCal Fish Tacos",d:"Authentic Baja-style fish tacos with fresh ingredients — Southern California's signature food."},{i:"🥑",n:"California Health Bowls",d:"Grain bowls, avocado toast, and fresh California cuisine — reflecting LA's health-conscious culture."},{i:"🍺",n:"Golden Road Brewing",d:"LA's own craft brewery pours Wolf Pup IPA and Mango Cart throughout SoFi Stadium."}]},
+{id:31,abbr:"SEA",espn:"sea",name:"Seattle Seahawks",stadium:"Lumen Field",city:"Seattle, WA",div:"NFC West",lg:"NFC",opened:2002,cap:69000,surf:"FieldTurf",rating:null,rc:"0",p:"#002244",s:"#69BE28",facts:[["Opened","2002"],["Capacity","69,000"],["Surface","FieldTurf"],["Record","Loudest NFL Stadium"]],dims:[["69,000","Capacity"],["2002","Opened"],["FieldTurf","Surface"]],unique:["Lumen Field is considered the loudest stadium in the NFL — the 12th Man is real","The 12th Man tradition is so valued that Seattle retired the number 12","The Legion of Boom defense was arguably the greatest in NFL history","Two Super Bowl appearances (2014, 2015) defined the Pete Carroll era"],legs:[{y:"2014",t:"Super Bowl XLVIII — The Demolition",d:"The Seahawks crushed the Broncos 43-8 — one of the most dominant Super Bowl performances ever."},{y:"2015",t:"Super Bowl XLIX — The Call at the Goal Line",d:"One of the most debated play calls in Super Bowl history — a pass from the 1-yard line led to a Malcolm Butler interception."},{y:"2013",t:"The Legion of Boom at Their Peak",d:"Sherman, Thomas, Chancellor, and Wright formed the greatest secondary in NFL history — allowing just 14.4 points per game."}],food:[{i:"🦀",n:"Dungeness Crab Sandwich",d:"Fresh Pacific Northwest Dungeness crab on a toasted roll — a Seattle seafood institution."},{i:"🐟",n:"Ivar's Clam Chowder",d:"Seattle's legendary Ivar's serves their famous clam chowder throughout Lumen Field."},{i:"🍺",n:"Pike Brewing",d:"Seattle's iconic craft brewery pours Naughty Nellie and Kilt Lifter throughout the stadium."}]},
+{id:32,abbr:"SF",espn:"sf",name:"San Francisco 49ers",stadium:"Levi's Stadium",city:"Santa Clara, CA",div:"NFC West",lg:"NFC",opened:2014,cap:68500,surf:"Grass",rating:null,rc:"0",p:"#AA0000",s:"#B3995D",facts:[["Opened","2014"],["Capacity","68,500"],["Surface","Grass"],["Location","Santa Clara, CA"]],dims:[["68,500","Capacity"],["2014","Opened"],["Grass","Surface"]],unique:["Five Super Bowl championships — the gold standard of NFC West success","The 49ers dynasty of the 1980s-1990s is the most successful run in NFL history","Kyle Shanahan's offense is the most widely copied system in modern football","Levi's Stadium is one of the greenest venues in professional sports"],legs:[{y:"1982",t:"The Catch — Dwight Clark",d:"Clark's leaping catch in the back of the end zone defeated the Cowboys — launching the 49ers dynasty."},{y:"1995",t:"Super Bowl XXIX — Steve Young Breaks Free",d:"Young threw six touchdown passes — the most dominant quarterback performance in Super Bowl history."},{y:"2020",t:"The Trade for Trey Lance",d:"The 49ers traded three first-round picks for Lance — a massive bet that eventually led them back to the Super Bowl with Purdy."}],food:[{i:"🌮",n:"NorCal Tacos",d:"Farm-to-fork style tacos with fresh California ingredients — reflecting the Bay Area's food culture."},{i:"🍺",n:"Sierra Nevada Brewing",d:"One of California's most iconic craft breweries pours throughout Levi's Stadium."},{i:"🥗",n:"Silicon Valley Health Food",d:"Organic bowls, fresh salads, and locally sourced ingredients — reflecting Santa Clara's health-conscious culture."}]}
+];
+
+
+const DIVS=["AFC East","AFC North","AFC South","AFC West","NFC East","NFC North","NFC South","NFC West"];
+const CATS=["Overall Experience","Food & Drinks","Atmosphere","Seats & Sightlines","Value for Money"];
+let cur=null,gLoaded=false,rankSort="rating";
+
+function espnNFL(id){return `https://a.espncdn.com/i/teamlogos/nfl/500/${id}.png`;}
+
+// ── STORAGE ──
+function getRatings(abbr){try{return JSON.parse(localStorage.getItem("nfl_r_"+abbr)||"null");}catch(e){return null;}}
+function saveVote(abbr,scores){
+  let d=getRatings(abbr)||{count:0,totals:[0,0,0,0,0]};
+  d.count++;scores.forEach((s,i)=>d.totals[i]+=s);
+  localStorage.setItem("nfl_r_"+abbr,JSON.stringify(d));
+}
+function hasVoted(abbr){return !!localStorage.getItem("nfl_v_"+abbr);}
+function markVoted(abbr){localStorage.setItem("nfl_v_"+abbr,"1");}
+function getAvg(abbr){
+  const d=getRatings(abbr);
+  if(!d||!d.count)return null;
+  return{count:d.count,avgs:d.totals.map(t=>Math.round(t/d.count*10)/10),overall:Math.round(d.totals.reduce((a,b)=>a+b,0)/(d.count*d.totals.length)*10)/10};
+}
+function getReviews(abbr){try{return JSON.parse(localStorage.getItem("nfl_rv_"+abbr)||"[]");}catch(e){return[];}}
+function getVisited(){try{return JSON.parse(localStorage.getItem("nfl_vis")||"[]");}catch(e){return[];}}
+function toggleVis(abbr){
+  let v=getVisited();
+  v.includes(abbr)?v=v.filter(a=>a!==abbr):v.push(abbr);
+  localStorage.setItem("nfl_vis",JSON.stringify(v));
+  renderVisited();
+}
+
+// ── PAGE NAV ──
+function showPage(p){
+  ["home","rankings-page","compare-page","visited-page","sp"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.style.display="none";
+  });
+  document.querySelectorAll(".nav-links a").forEach(a=>a.classList.remove("active"));
+  if(p==="home"){document.getElementById("home").style.display="block";document.getElementById("nav-home").classList.add("active");}
+  else if(p==="rankings"){document.getElementById("rankings-page").style.display="block";document.getElementById("nav-rankings").classList.add("active");renderRankings();}
+  else if(p==="compare"){document.getElementById("compare-page").style.display="block";document.getElementById("nav-compare").classList.add("active");buildCmpSelects();}
+  else if(p==="visited"){document.getElementById("visited-page").style.display="block";document.getElementById("nav-visited").classList.add("active");renderVisited();}
+  else if(p==="sp"){document.getElementById("sp").style.display="block";}
+  window.scrollTo(0,0);
+}
+
+// ── HOME ──
+function buildHome(q){
+  const f=(q||"").toLowerCase();
+  let h="";
+  DIVS.forEach(div=>{
+    const teams=TEAMS.filter(t=>t.div===div&&(!f||t.name.toLowerCase().includes(f)||t.abbr.toLowerCase().includes(f)||t.stadium.toLowerCase().includes(f)));
+    if(!teams.length)return;
+    h+=`<div><div class="div-head"><h2>${div}</h2><div class="div-line"></div></div><div class="grid">`;
+    teams.forEach(t=>{
+      h+=`<div class="tcard" style="border-color:${t.p}44" onmouseover="this.style.borderColor='${t.p}'" onmouseout="this.style.borderColor='${t.p}44'" onclick="openModal(${t.id})">
+        <div class="lg-badge">${t.lg}</div>
+        <img src="${espnNFL(t.espn)}" alt="${t.abbr}" onerror="this.style.display='none'">
+        <div class="card-abbr" style="color:${t.p}">${t.abbr}</div>
+        <div class="tname">${t.name}</div>
+        <div class="tstadium">${t.stadium}</div>
+      </div>`;
+    });
+    h+="</div></div>";
+  });
+  document.getElementById("divs").innerHTML=h;
+}
+document.getElementById("srch").addEventListener("input",e=>buildHome(e.target.value));
+
+// ── MODAL ──
+function openModal(id){
+  const t=TEAMS.find(x=>x.id===id);if(!t)return;cur=t;
+  document.getElementById("ma").textContent=t.abbr;
+  document.getElementById("ma").style.color=t.p;
+  document.getElementById("mt").textContent=t.name;
+  document.getElementById("ms").textContent=t.stadium;
+  document.getElementById("ml").textContent="📍 "+t.city+"  ·  "+t.div;
+  document.getElementById("mf").innerHTML=[["Opened",t.opened],["Capacity",t.cap.toLocaleString()],["Surface",t.surf],["Division",t.div]]
+    .map(([l,v])=>`<div class="mf"><div class="mf-l">${l}</div><div class="mf-v">${v}</div></div>`).join("");
+  const eb=document.getElementById("meb");
+  eb.style.border="1px solid "+t.p+"66";eb.style.color=t.p;
+  eb.onclick=()=>{closeModal();openSP(t.id);};
+  document.getElementById("ov").classList.add("open");
+}
+function closeModal(){document.getElementById("ov").classList.remove("open");}
+document.getElementById("ov").addEventListener("click",e=>{if(e.target.id==="ov")closeModal();});
+
+// ── STADIUM PAGE ──
+function setTheme(t){
+  const accent=t.p;
+  const el=document.getElementById("sp");
+  const vars={
+    "--sb":"#0f0e0c","--sbd":"#0a0908",
+    "--shb":"linear-gradient(135deg,"+t.p+"35 0%,#0f0e0c 55%)",
+    "--st":"#e8e0d0","--sh":"#f5efe0","--sm":"rgba(232,224,208,0.42)",
+    "--sa":accent,"--sas":accent+"22","--sab":accent+"38",
+    "--sc":"rgba(232,220,180,0.04)","--sbr":"rgba(232,220,180,0.09)","--sbt":"#0f0e0c"
+  };
+  Object.entries(vars).forEach(([k,v])=>el.style.setProperty(k,v));
+  el.style.background="var(--sb)";el.style.color="var(--st)";
+}
+
+function openSP(id){
+  const t=TEAMS.find(x=>x.id===id);if(!t)return;cur=t;gLoaded=false;
+  setTheme(t);
+  document.getElementById("spa").textContent=t.abbr;
+  document.getElementById("spn").textContent=t.name;
+  document.getElementById("sps").textContent=t.stadium;
+  document.getElementById("spl").textContent="📍 "+t.city+"  ·  "+t.div;
+  document.getElementById("spo").textContent=t.opened;
+  document.getElementById("spc").textContent=t.cap.toLocaleString();
+  document.getElementById("spsu").textContent=t.surf;
+  const r=getAvg(t.abbr);
+  document.getElementById("spr").textContent=r?r.overall.toFixed(1)+" / 10":"N/A";
+  document.getElementById("sp-facts").innerHTML=t.facts.map(([l,v])=>`<div class="sp-fc"><div class="sp-fl">${l}</div><div class="sp-fv">${v}</div></div>`).join("");
+  document.getElementById("sp-dims").innerHTML=t.dims.map(([n,l])=>`<div class="dim"><div class="dn">${n}</div><div class="dl">${l}</div></div>`).join("");
+  document.getElementById("sp-tags").innerHTML=t.unique.map(u=>`<div class="tag">${u}</div>`).join("");
+  document.getElementById("sp-legs").innerHTML=t.legs.map(lg=>`<div class="lc"><div class="ly">${lg.y}</div><div class="lt">${lg.t}</div><div class="ld">${lg.d}</div></div>`).join("");
+  document.getElementById("sp-food").innerHTML=t.food.map(f=>`<div class="fc"><div class="fi">${f.i}</div><div><div class="fn">${f.n}</div><div class="fd">${f.d}</div></div></div>`).join("");
+  renderRatingsPanel();
+  renderReviewsPanel();
+  sTab("t-ov",document.querySelector("#sp-tabs-row .sp-tab"));
+  showPage("sp");
+}
+
+function sTab(id,el){
+  document.querySelectorAll("#sp .sp-panel").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll("#sp-tabs-row .sp-tab").forEach(t=>t.classList.remove("active"));
+  const panel=document.getElementById(id);
+  if(panel)panel.classList.add("active");
+  if(el)el.classList.add("active");
+  if(id==="t-gm"&&!gLoaded)loadGames();
+}
+
+// ── GAMES ──
+async function loadGames(){
+  if(!cur)return;
+  const list=document.getElementById("sp-games");
+  list.innerHTML="<div style='font-size:.82rem;padding:.8rem 0;color:var(--sm)'>Loading schedule...</div>";
+  try{
+    const res=await fetch("https://statsapi.mlb.com/api/v1/schedule?teamId="+cur.id+"&season=2026&gameType=R&sportId=1&startDate=2026-05-14&endDate=2026-06-30");
+    const data=await res.json();
+    const events=(data.events||[]).filter(e=>e.season&&e.season.type===2);
+    if(!events.length){list.innerHTML="<div style='font-size:.82rem;padding:.8rem 0;color:var(--sm)'>No upcoming games found.</div>";return;}
+    let h="";
+    events.slice(0,12).forEach(e=>{
+      const comp=e.competitions&&e.competitions[0];if(!comp)return;
+      const home=comp.competitors.find(c=>c.homeAway==="home");
+      const away=comp.competitors.find(c=>c.homeAway==="away");
+      if(!home||!away)return;
+      const ih=home.team.abbreviation===cur.abbr;
+      const dt=new Date(e.date);
+      const dateStr=dt.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+      const tm=dt.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZoneName:"short"});
+      h+=`<div class="gr"><div class="gd">${dateStr}</div><div class="gm">${away.team.displayName} @ ${home.team.displayName}</div><div class="gt">${tm}</div><div class="gp ${ih?"gph":"gpa"}">${ih?"Home":"Away"}</div></div>`;
+    });
+    list.innerHTML=h||"<div style='font-size:.82rem;padding:.8rem 0;color:var(--sm)'>No upcoming games found.</div>";gLoaded=true;
+  }catch(e){list.innerHTML="<div style='font-size:.82rem;padding:.8rem 0;color:var(--sm)'>Could not load schedule.</div>";}
+}
+
+// ── RATINGS ──
+function renderRatingsPanel(){
+  if(!cur)return;
+  const r=getAvg(cur.abbr);
+  const voted=hasVoted(cur.abbr);
+  const scoreEl=document.getElementById("spr");
+  if(scoreEl)scoreEl.textContent=r?r.overall.toFixed(1)+" / 10":"N/A";
+  const rb=document.getElementById("rt-score");
+  const rc=document.getElementById("rt-count");
+  const bars=document.getElementById("rt-bars");
+  const varea=document.getElementById("rt-vote-area");
+  if(!rb)return;
+  if(!r){
+    rb.textContent="N/A";rb.style.fontSize="3rem";
+    rc.textContent="No ratings yet — be the first!";
+    bars.innerHTML=CATS.map(l=>`<div class="rr"><div class="rl">${l}</div><div class="rbg"><div class="rbf" style="width:0%"></div></div><div class="rv-num">—</div></div>`).join("");
+  }else{
+    rb.textContent=r.overall.toFixed(1);rb.style.fontSize="5rem";
+    rc.textContent="out of 10 · "+r.count+(r.count===1?" rating":" ratings");
+    bars.innerHTML=CATS.map((l,i)=>`<div class="rr"><div class="rl">${l}</div><div class="rbg"><div class="rbf" style="width:${Math.round(r.avgs[i]*10)}%"></div></div><div class="rv-num">${r.avgs[i].toFixed(1)}</div></div>`).join("");
+  }
+  if(voted){
+    varea.innerHTML="<div class='vmsg' style='display:block'>You have already rated this stadium.</div>";
+  }else{
+    varea.innerHTML=`<div class="vote-form">
+      <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--sh);font-weight:700;font-style:italic;margin-bottom:1.2rem">Rate This Stadium</div>
+      ${CATS.map((cat,i)=>`<div style="margin-bottom:1.2rem">
+        <div style="font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--sm);margin-bottom:0.5rem;font-family:monospace">${cat}</div>
+        <div class="score-btns">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button class="score-btn" data-cat="${i}" data-val="${n}" onclick="selectScore(${i},${n},this)">${n}</button>`).join("")}</div>
+      </div>`).join("")}
+      <button class="vbtn" onclick="submitVote()">Submit Rating</button>
+      <div class="vmsg" id="vote-msg">Thanks for rating!</div>
+    </div>`;
+  }
+}
+
+function selectScore(catIdx,val,btn){
+  document.querySelectorAll(".score-btn[data-cat='"+catIdx+"']").forEach(b=>b.classList.remove("sel"));
+  btn.classList.add("sel");
+}
+
+function submitVote(){
+  const scores=[];
+  for(let i=0;i<CATS.length;i++){
+    const sel=document.querySelector(".score-btn[data-cat='"+i+"'].sel");
+    if(!sel){alert("Please rate all 5 categories.");return;}
+    scores.push(parseInt(sel.dataset.val));
+  }
+  saveVote(cur.abbr,scores);markVoted(cur.abbr);
+  renderRatingsPanel();
+  document.getElementById("spr").textContent=getAvg(cur.abbr).overall.toFixed(1)+" / 10";
+}
+
+// ── REVIEWS ──
+function renderReviewsPanel(){
+  if(!cur)return;
+  const reviews=getReviews(cur.abbr);
+  const list=document.getElementById("rv-list");
+  const form=document.getElementById("rv-form-area");
+  if(!list||!form)return;
+  list.innerHTML=reviews.length?reviews.slice().reverse().map(rv=>`<div class="rv-item"><div style="display:flex;align-items:center;gap:0.8rem"><div class="rv-score">${rv.score}/10</div><div class="rv-date">${rv.date}</div></div><div class="rv-text">${rv.text}</div></div>`).join(""):"<div style='font-size:0.82rem;color:var(--sm)'>No reviews yet. Be the first!</div>";
+  form.innerHTML=`<div style="background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.5rem">
+    <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--sh);font-weight:700;font-style:italic;margin-bottom:0.8rem">Leave a Review</div>
+    <div style="font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--sm);margin-bottom:0.5rem;font-family:monospace">Your score</div>
+    <div class="score-btns" id="rv-btns">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button class="score-btn" data-rv="${n}" onclick="selectRvScore(${n},this)">${n}</button>`).join("")}</div>
+    <textarea class="rv-textarea" id="rv-text" placeholder="Share your experience at this stadium..."></textarea>
+    <button class="vbtn" onclick="submitReview()" style="margin-top:0.8rem">Post Review</button>
+    <div class="vmsg" id="rv-msg">Review posted!</div>
+  </div>`;
+}
+
+function selectRvScore(n,btn){
+  document.querySelectorAll("#rv-btns .score-btn").forEach(b=>b.classList.remove("sel"));
+  btn.classList.add("sel");
+}
+
+function submitReview(){
+  const sel=document.querySelector("#rv-btns .score-btn.sel");
+  const text=document.getElementById("rv-text").value.trim();
+  if(!sel){alert("Please select a score.");return;}
+  if(!text){alert("Please write something.");return;}
+  const reviews=getReviews(cur.abbr);
+  reviews.push({score:parseInt(sel.dataset.rv),text,date:new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})});
+  localStorage.setItem("nfl_rv_"+cur.abbr,JSON.stringify(reviews));
+  document.getElementById("rv-text").value="";
+  const msg=document.getElementById("rv-msg");
+  msg.style.display="block";setTimeout(()=>msg.style.display="none",2500);
+  renderReviewsPanel();
+}
+
+// ── RANKINGS ──
+function setRankSort(s,btn){
+  rankSort=s;
+  document.querySelectorAll(".rank-filter").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  renderRankings();
+}
+function renderRankings(){
+  const sorted=[...TEAMS].sort((a,b)=>{
+    if(rankSort==="rating"){const ra=getAvg(a.abbr),rb=getAvg(b.abbr);return(rb?rb.overall:0)-(ra?ra.overall:0);}
+    if(rankSort==="cap")return b.cap-a.cap;
+    if(rankSort==="oldest")return a.opened-b.opened;
+    if(rankSort==="newest")return b.opened-a.opened;
+    if(rankSort==="name")return a.name.localeCompare(b.name);
+    if(rankSort==="div")return(a.div+a.name).localeCompare(b.div+b.name);
+    return 0;
+  });
+  document.getElementById("rank-list").innerHTML=sorted.map((t,i)=>{
+    const r=getAvg(t.abbr);
+    let val,sub;
+    if(rankSort==="rating"){val=r?r.overall.toFixed(1):"N/A";sub="fan rating";}
+    else if(rankSort==="cap"){val=t.cap.toLocaleString();sub="capacity";}
+    else if(rankSort==="oldest"||rankSort==="newest"){val=t.opened;sub="year opened";}
+    else{val=t.abbr;sub=t.div;}
+    return`<div class="rank-row" onclick="openSP(${t.id})">
+      <div class="rank-num">${i+1}</div>
+      <img class="rank-logo" src="${espnNFL(t.espn)}" alt="${t.abbr}" onerror="this.style.display='none'">
+      <div><div class="rank-name">${t.name}</div><div class="rank-stadium">${t.stadium}</div></div>
+      <div style="text-align:right;margin-left:auto"><div class="rank-val" style="color:${t.p}">${val}</div><div class="rank-sub">${sub}</div></div>
+    </div>`;
+  }).join("");
+}
+
+// ── COMPARE ──
+function buildCmpSelects(){
+  const opts=TEAMS.map(t=>`<option value="${t.id}">${t.name} — ${t.stadium}</option>`).join("");
+  const a=document.getElementById("cmp-a"),b=document.getElementById("cmp-b");
+  if(!a.innerHTML){a.innerHTML=opts;b.innerHTML=opts;b.selectedIndex=1;}
+  renderCompare();
+}
+function renderCompare(){
+  const ta=TEAMS.find(t=>t.id===parseInt(document.getElementById("cmp-a").value));
+  const tb=TEAMS.find(t=>t.id===parseInt(document.getElementById("cmp-b").value));
+  if(!ta||!tb)return;
+  const ra=getAvg(ta.abbr),rb=getAvg(tb.abbr);
+  const rows=[
+    ["Opened",ta.opened,tb.opened,false,ta.opened<tb.opened,tb.opened<ta.opened],
+    ["Capacity",ta.cap.toLocaleString(),tb.cap.toLocaleString(),false,ta.cap>tb.cap,tb.cap>ta.cap],
+    ["Surface",ta.surf,tb.surf,true,false,false],
+    ["Division",ta.div,tb.div,true,false,false],
+    ["Fan Rating",ra?ra.overall.toFixed(1):"N/A",rb?rb.overall.toFixed(1):"N/A",false,ra&&rb&&ra.overall>rb.overall,ra&&rb&&rb.overall>ra.overall],
+    ["LF Line",ta.dims[0][0]+"ft",tb.dims[0][0]+"ft",true,false,false],
+    ["Center",ta.dims[2][0]+"ft",tb.dims[2][0]+"ft",true,false,false],
+    ["RF Line",ta.dims[3][0]+"ft",tb.dims[3][0]+"ft",true,false,false],
+  ];
+  document.getElementById("cmp-result").innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-bottom:1rem">
+      <div style="background:#141210;padding:1.5rem;display:flex;align-items:center;gap:1rem;border:1px solid rgba(232,220,180,0.09)">
+        <img src="${espnNFL(ta.espn)}" style="width:44px;height:44px;object-fit:contain" onerror="this.style.display='none'">
+        <div><div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:#f0ead8;font-weight:900">${ta.name}</div><div style="font-size:0.65rem;color:rgba(232,224,208,0.35);font-family:monospace">${ta.stadium}</div></div>
+      </div>
+      <div style="background:#141210;padding:1.5rem;display:flex;align-items:center;gap:1rem;border:1px solid rgba(232,220,180,0.09)">
+        <img src="${espnNFL(tb.espn)}" style="width:44px;height:44px;object-fit:contain" onerror="this.style.display='none'">
+        <div><div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:#f0ead8;font-weight:900">${tb.name}</div><div style="font-size:0.65rem;color:rgba(232,224,208,0.35);font-family:monospace">${tb.stadium}</div></div>
+      </div>
+    </div>
+    <div style="border:1px solid rgba(232,220,180,0.09);border-radius:2px;overflow:hidden">
+      ${rows.map(([lbl,av,bv,neutral,aw,bw])=>`<div class="cmp-row">
+        <div class="cmp-cell" style="border-right:1px solid rgba(232,220,180,0.06)"><div class="cmp-lbl">${lbl}</div><div class="cmp-val ${aw?"cmp-win":""}">${av}</div></div>
+        <div class="cmp-cell"><div class="cmp-lbl">${lbl}</div><div class="cmp-val ${bw?"cmp-win":""}">${bv}</div></div>
+      </div>`).join("")}
+    </div>
+    <div style="margin-top:0.8rem;font-size:0.65rem;color:rgba(232,224,208,0.25);font-family:monospace">Gold values indicate the winner for that stat.</div>`;
+}
+
+// ── VISITED ──
+function renderVisited(){
+  const v=getVisited();
+  document.getElementById("vis-sub").textContent=v.length===0?"Track every ballpark you have visited.":v.length+" of 30 parks visited";
+  document.getElementById("vis-grid").innerHTML=TEAMS.map(t=>`
+    <div class="vis-card ${v.includes(t.abbr)?"been":""}" onclick="toggleVis('${t.abbr}')">
+      <div class="vis-check">✓</div>
+      <img src="${espnNFL(t.espn)}" style="width:38px;height:38px;object-fit:contain" onerror="this.style.display='none'">
+      <div style="font-family:'Playfair Display',serif;font-size:0.95rem;font-weight:700;color:${t.p}">${t.abbr}</div>
+      <div style="font-size:0.58rem;color:rgba(232,224,208,0.35);text-align:center;line-height:1.3;font-family:monospace">${t.stadium}</div>
+    </div>`).join("");
+}
+
+showPage("home");
+buildHome();
+</script>
+</body>
+</html>

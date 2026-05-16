@@ -213,19 +213,20 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1.2rem
 </div>
 
 <div id="compare-page" style="padding:2.5rem;min-height:100vh">
-  <div style="max-width:900px;margin:0 auto">
+  <div style="max-width:960px;margin:0 auto">
     <div class="page-head">
-      <div class="page-eye">Ballpark Index</div>
+      <div class="page-eye">NFL Compare</div>
       <div class="page-title">Compare Stadiums</div>
+      <div class="page-sub">Select two NFL stadiums and hit Compare for a full head-to-head breakdown.</div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1rem">
       <div>
-        <div style="font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(232,224,208,0.35);margin-bottom:0.5rem;font-family:DM Mono,monospace">Stadium One</div>
-        <select id="cmp-a" onchange="renderCompare()" style="width:100%;background:#141210;border:1px solid rgba(232,220,180,0.15);border-radius:2px;color:#e8e0d0;font-family:DM Sans,sans-serif;font-size:0.85rem;padding:0.75rem 1rem;outline:none;cursor:pointer"></select>
+        <div style="font-size:0.58rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(212,175,85,0.5);margin-bottom:0.5rem;font-family:'DM Mono',monospace">Stadium One</div>
+        <select id="cmp-a" style="width:100%;background:#1e1508;border:1px solid rgba(212,175,85,0.2);border-radius:2px;color:#f0e6d0;font-family:'DM Sans',sans-serif;font-size:0.83rem;padding:0.75rem 0.9rem;outline:none;cursor:pointer"></select>
       </div>
       <div>
-        <div style="font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(232,224,208,0.35);margin-bottom:0.5rem;font-family:DM Mono,monospace">Stadium Two</div>
-        <select id="cmp-b" onchange="renderCompare()" style="width:100%;background:#141210;border:1px solid rgba(232,220,180,0.15);border-radius:2px;color:#e8e0d0;font-family:DM Sans,sans-serif;font-size:0.85rem;padding:0.75rem 1rem;outline:none;cursor:pointer"></select>
+        <div style="font-size:0.58rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(212,175,85,0.5);margin-bottom:0.5rem;font-family:'DM Mono',monospace">Stadium Two</div>
+        <select id="cmp-b" style="width:100%;background:#1e1508;border:1px solid rgba(212,175,85,0.2);border-radius:2px;color:#f0e6d0;font-family:'DM Sans',sans-serif;font-size:0.83rem;padding:0.75rem 0.9rem;outline:none;cursor:pointer"></select>
       </div>
     </div>
     <button onclick="renderCompare()" style="background:#d4af55;color:#1a1209;border:none;font-family:'DM Sans',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;padding:0.85rem 2.5rem;border-radius:2px;cursor:pointer;margin-bottom:2rem">Compare &#8594;</button>
@@ -233,7 +234,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1.2rem
   </div>
 </div>
 
-<div id="visited-page" style="padding:2.5rem;min-height:100vh">
+<div <div id="visited-page" style="padding:2.5rem;min-height:100vh">
   <div style="max-width:900px;margin:0 auto">
     <div class="page-head">
       <div class="page-eye">Ballpark Index</div>
@@ -465,6 +466,7 @@ function openSP(id){
   document.getElementById("sp-food").innerHTML=t.food.map(f=>`<div class="fc"><div class="fi">${f.i}</div><div><div class="fn">${f.n}</div><div class="fd">${f.d}</div></div></div>`).join("");
   renderRatingsPanel();
   renderReviewsPanel();
+  sTab("t-ov",document.querySelector("#sp-tabs-row .sp-tab"));
   const ach=cur.ach||{sb:0,conf:0,div:0,awards:[]};
   document.getElementById("sp-achievements").innerHTML=`
     <div class="ach-grid">
@@ -475,7 +477,6 @@ function openSP(id){
     <div class="sp-sec">Individual Awards</div>
     ${(ach.awards||[]).length?ach.awards.map(a=>'<div class="ach-award"><div class="ach-award-icon">'+a.i+'</div><div><div class="ach-award-name">'+a.n+'</div><div class="ach-award-detail">'+a.d+'</div></div></div>').join(""):'<div style="color:var(--sm);font-size:0.82rem;padding:0.8rem 0">No individual awards recorded yet.</div>'}
   `;
-  sTab("t-ov",document.querySelector("#sp-tabs-row .sp-tab"));
   showPage("sp");
 }
 

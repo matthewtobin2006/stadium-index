@@ -393,7 +393,7 @@ function buildHome(q){
   const f=(q||"").toLowerCase();
   let h="";
   DIVS.forEach(div=>{
-    const teams=TEAMS.filter(t=>t.div===div&&(!f||t.name.toLowerCase().includes(f)||t.abbr.toLowerCase().includes(f)||t.stadium.toLowerCase().includes(f)));
+    const teams=TEAMS.filter(t=>t.div===div&&(!f||t.name.toLowerCase().includes(f)||t.abbr.toLowerCase().includes(f)||t.arena.toLowerCase().includes(f)));
     if(!teams.length)return;
     h+=`<div><div class="div-head"><h2>${div}</h2><div class="div-line"></div></div><div class="grid">`;
     teams.forEach(t=>{
@@ -402,7 +402,7 @@ function buildHome(q){
         <img src="${espnNFL(t.espn)}" alt="${t.abbr}" onerror="this.style.display='none'">
         <div class="card-abbr" style="color:${t.p}">${t.abbr}</div>
         <div class="tname">${t.name}</div>
-        <div class="tstadium">${t.stadium}</div>
+        <div class="tstadium">${t.arena}</div>
       </div>`;
     });
     h+="</div></div>";
@@ -417,7 +417,7 @@ function openModal(id){
   document.getElementById("ma").textContent=t.abbr;
   document.getElementById("ma").style.color=t.p;
   document.getElementById("mt").textContent=t.name;
-  document.getElementById("ms").textContent=t.stadium;
+  document.getElementById("ms").textContent=t.arena;
   document.getElementById("ml").textContent="📍 "+t.city+"  ·  "+t.div;
   document.getElementById("mf").innerHTML=[["Opened",t.opened],["Capacity",t.cap.toLocaleString()],["Surface",t.surf],["Division",t.div]]
     .map(([l,v])=>`<div class="mf"><div class="mf-l">${l}</div><div class="mf-v">${v}</div></div>`).join("");
@@ -449,7 +449,7 @@ function openSP(id){
   setTheme(t);
   document.getElementById("spa").textContent=t.abbr;
   document.getElementById("spn").textContent=t.name;
-  document.getElementById("sps").textContent=t.stadium;
+  document.getElementById("sps").textContent=t.arena;
   document.getElementById("spl").textContent="📍 "+t.city+"  ·  "+t.div;
   document.getElementById("spo").textContent=t.opened;
   document.getElementById("spc").textContent=t.cap.toLocaleString();
@@ -621,7 +621,7 @@ function renderRankings(){
     return`<div class="rank-row" onclick="openSP(${t.id})">
       <div class="rank-num">${i+1}</div>
       <img class="rank-logo" src="${espnNFL(t.espn)}" alt="${t.abbr}" onerror="this.style.display='none'">
-      <div><div class="rank-name">${t.name}</div><div class="rank-stadium">${t.stadium}</div></div>
+      <div><div class="rank-name">${t.name}</div><div class="rank-stadium">${t.arena}</div></div>
       <div style="text-align:right;margin-left:auto"><div class="rank-val" style="color:${t.p}">${val}</div><div class="rank-sub">${sub}</div></div>
     </div>`;
   }).join("");
@@ -678,7 +678,7 @@ function renderVisited(){
       <div class="vis-check">✓</div>
       <img src="${espnNFL(t.espn)}" style="width:38px;height:38px;object-fit:contain" onerror="this.style.display='none'">
       <div style="font-family:'Playfair Display',serif;font-size:0.95rem;font-weight:700;color:${t.p}">${t.abbr}</div>
-      <div style="font-size:0.58rem;color:rgba(232,224,208,0.35);text-align:center;line-height:1.3;font-family:monospace">${t.stadium}</div>
+      <div style="font-size:0.58rem;color:rgba(232,224,208,0.35);text-align:center;line-height:1.3;font-family:monospace">${t.arena}</div>
     </div>`).join("");
 }
 

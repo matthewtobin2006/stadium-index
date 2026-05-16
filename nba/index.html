@@ -157,6 +157,15 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1.2rem
 .page-eye{font-family:"DM Mono",monospace;font-size:0.65rem;letter-spacing:0.25em;text-transform:uppercase;color:#e8d080;margin-bottom:0.6rem}
 .page-title{font-family:"Playfair Display",serif;font-size:2.8rem;color:#f5efe0;font-weight:900;margin-bottom:0.5rem}
 .page-sub{font-size:0.85rem;color:rgba(232,224,208,0.4);line-height:1.6}
+.ach-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:2rem}
+.ach-card{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.4rem 1.2rem;text-align:center}
+.ach-icon{font-size:2rem;margin-bottom:0.6rem}
+.ach-num{font-family:"Playfair Display",serif;font-size:2.8rem;color:var(--sa);font-weight:900;font-style:italic;line-height:1}
+.ach-lbl{font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--sm);margin-top:0.3rem;font-family:"DM Mono",monospace}
+.ach-award{background:var(--sc);border:1px solid var(--sbr);border-radius:2px;padding:1.1rem 1.3rem;margin-bottom:9px;display:flex;align-items:center;gap:1rem}
+.ach-award-icon{font-size:1.4rem;flex-shrink:0}
+.ach-award-name{font-size:0.88rem;font-weight:600;color:var(--sh);margin-bottom:0.18rem}
+.ach-award-detail{font-size:0.72rem;color:var(--sm)}
 </style>
 </head>
 <body>
@@ -262,6 +271,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1.2rem
   <div class="sp-tabs" id="sp-tabs-row">
     <div class="sp-tab active" onclick="sTab('t-ov',this)">Overview</div>
     <div class="sp-tab" onclick="sTab('t-gm',this)">Games</div>
+    <div class="sp-tab" onclick="sTab('t-ac',this)">Achievements</div>
     <div class="sp-tab" onclick="sTab('t-lg',this)">Legends</div>
     <div class="sp-tab" onclick="sTab('t-fd',this)">Food Guide</div>
     <div class="sp-tab" onclick="sTab('t-rt',this)">Fan Ratings</div>
@@ -276,6 +286,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1.2rem
     <div class="sp-sec">Upcoming Games</div>
     <div class="game-list" id="sp-games"><div style="font-size:.82rem;padding:.8rem 0;color:var(--sm)">Loading...</div></div>
   </div>
+  <div id="t-ac" class="sp-panel"><div class="sp-sec">Franchise Achievements</div><div id="sp-achievements"></div></div>
   <div id="t-lg" class="sp-panel"><div class="sp-sec">Legendary Moments</div><div id="sp-legs"></div></div>
   <div id="t-fd" class="sp-panel"><div class="sp-sec">Food Guide</div><div id="sp-food"></div></div>
   <div id="t-rt" class="sp-panel">
@@ -450,6 +461,8 @@ function openSP(id){
   renderRatingsPanel();
   renderReviewsPanel();
   sTab("t-ov",document.querySelector("#sp-tabs-row .sp-tab"));
+  const ach=cur.ach||{ch:0,finals:0,div:0,awards:[]};
+document.getElementById("sp-achievements").innerHTML=`<div class="ach-grid"><div class="ach-card"><div class="ach-icon">🏆</div><div class="ach-num">${ach.ch||0}</div><div class="ach-lbl">Championships</div></div><div class="ach-card"><div class="ach-icon">🥈</div><div class="ach-num">${ach.finals||0}</div><div class="ach-lbl">Finals Appearances</div></div><div class="ach-card"><div class="ach-icon">🏅</div><div class="ach-num">${ach.div||0}</div><div class="ach-lbl">Division Titles</div></div></div><div class="sp-sec">Individual Awards</div>${(ach.awards||[]).length?ach.awards.map(a=>'<div class="ach-award"><div class="ach-award-icon">'+a.i+'</div><div><div class="ach-award-name">'+a.n+'</div><div class="ach-award-detail">'+a.d+'</div></div></div>').join(""):'<div style="color:var(--sm);font-size:0.82rem;padding:0.8rem 0">No awards recorded yet.</div>'}`;
   showPage("sp");
 }
 
